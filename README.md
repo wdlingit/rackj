@@ -49,8 +49,10 @@ echo "PATH=\"/home/ubuntu/Tools/rackJ/scripts:\$PATH\"" >> ~/.profile
 echo "PATH=\"/home/ubuntu/Tools/bowtie2-2.4.4-linux-x86_64:\$PATH\"" >> ~/.profile
 echo "PATH=\"/home/ubuntu/Tools:\$PATH\"" >> ~/.profile
 echo "INC=\"/home/ubuntu/Tools/rackJ/scripts/PerlLib\"" >> ~/.profile
+echo "CLASSPATH=\"/home/ubuntu/Tools/rackJ/rackj.jar:/home/ubuntu/Tools/sam-1.89.jar\"" >> ~/.profile
 echo "export PATH" >> ~/.profile
 echo "export INC" >> ~/.profile
+echo "export CLASSPATH" >> ~/.profile
 
 # Source if needed
 source ~/.profile
