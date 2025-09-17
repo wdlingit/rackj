@@ -4,7 +4,7 @@ This repository is currently for [rackj](https://sourceforge.net/projects/rackj/
 
 ## Installation
 
-It would be most convenient to use the [docker image](https://hub.docker.com/r/wdlin/rackj). Programs and packages required in our example walkthroughs should be contained in the image file.
+It would be most convenient to use the [docker image](https://hub.docker.com/r/wdlin/rackj). Programs and packages required in our example walkthroughs should be all contained in the image file.
 
 <details>
   <summary>Manual install instruction</summary>
