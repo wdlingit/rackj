@@ -267,3 +267,7 @@ Singularity> head desqOut.csv
 "AT2G30190.1",0,NA,NA,NA,NA,NA
 "AT1G31390.1",0,NA,NA,NA,NA,NA
 ```
+
+## 5. Isoform expression level comparison
+
+## 6. Visualization of read alignments and the gudided assembly
