@@ -108,3 +108,14 @@ The commands seem OK. So we add `system $cmd` for actual executing them.
 ```
 ls src/*.fq.gz | sort | perl -ne 'chomp; /.+\/(.+)_R\d\./; push @{$hash{$1}},$_; if(eof){ for $k (sort keys %hash){ $cmd="tophat2 -o $k"."_tophat2 -p 4 --transcriptome-index=tair10.transcriptome/known tair10.genome @{$hash{$k}}"; print "\nCMD: $cmd\n"; system $cmd } }'
 ```
+
+Output BAM files would be `*_tophat2/accepted_hits.bam`.
+```
+Singularity> ls -l *_tophat2/accepted_hits.bam
+-rwxrwxrwx+ 1 wdlin R418 40533905 Sep 18 14:43 control_rep1_tophat2/accepted_hits.bam
+-rwxrwxrwx+ 1 wdlin R418 41634756 Sep 18 14:45 control_rep2_tophat2/accepted_hits.bam
+-rwxrwxrwx+ 1 wdlin R418 39169407 Sep 18 14:47 control_rep4_tophat2/accepted_hits.bam
+-rwxrwxrwx+ 1 wdlin R418 39090724 Sep 18 14:49 treatment_rep5_tophat2/accepted_hits.bam
+-rwxrwxrwx+ 1 wdlin R418 41104212 Sep 18 14:50 treatment_rep7_tophat2/accepted_hits.bam
+-rwxrwxrwx+ 1 wdlin R418 40041940 Sep 18 14:52 treatment_rep9_tophat2/accepted_hits.bam
+```
