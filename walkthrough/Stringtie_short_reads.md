@@ -119,3 +119,96 @@ Singularity> ls -l *_tophat2/accepted_hits.bam
 -rwxrwxrwx+ 1 wdlin R418 41104212 Sep 18 14:50 treatment_rep7_tophat2/accepted_hits.bam
 -rwxrwxrwx+ 1 wdlin R418 40041940 Sep 18 14:52 treatment_rep9_tophat2/accepted_hits.bam
 ```
+
+## 2. Guided assembly by StringTie
+
+Firstly we translate the `TAIR10_GFF3_genes_transposons.gff` into GTF file `tair10.gtf` using `gffread`. Note that the `2>/dev/null` part is to direct warning messages of `transposon_fragment` to `/dev/null`. We omit them because we know they are harmless.
+```
+gffread -T -o tair10.gtf TAIR10_GFF3_genes_transposons.gff 2>/dev/null
+```
+
+StringTie-guided assembly has two steps. The first step is to generate a GTF file for each of the BAM file.
+```
+ls *_tophat2/accepted_hits.bam | perl -ne 'chomp; /(.+?)_tophat2/; $cmd="stringtie $_ -o $1.gtf -p 4 -G tair10.gtf"; print "\nCMD: $cmd\n"; system $cmd'
+```
+
+The above perl one-liner should give us the following 6 commands. Each of them reads the read alignment BAM file and does guided assembly with regards to the existing genome annotation (`tair10.gtf`).
+```
+CMD: stringtie control_rep1_tophat2/accepted_hits.bam -o control_rep1.gtf -p 4 -G tair10.gtf
+
+CMD: stringtie control_rep2_tophat2/accepted_hits.bam -o control_rep2.gtf -p 4 -G tair10.gtf
+
+CMD: stringtie control_rep4_tophat2/accepted_hits.bam -o control_rep4.gtf -p 4 -G tair10.gtf
+
+CMD: stringtie treatment_rep5_tophat2/accepted_hits.bam -o treatment_rep5.gtf -p 4 -G tair10.gtf
+
+CMD: stringtie treatment_rep7_tophat2/accepted_hits.bam -o treatment_rep7.gtf -p 4 -G tair10.gtf
+
+CMD: stringtie treatment_rep9_tophat2/accepted_hits.bam -o treatment_rep9.gtf -p 4 -G tair10.gtf
+```
+
+The second step is to merge all GTF file for the 6 samples. The merged GTF file is named `merged.gtf`.
+```
+stringtie --merge -G tair10.gtf -o merged.gtf control_rep1.gtf control_rep2.gtf control_rep4.gtf treatment_rep5.gtf treatment_rep7.gtf treatment_rep9.gtf
+```
+
+## 2A. Not applying guided assembly by StringTie
+
+The guided assembly step by StringTie would produce many novel transcripts and novel gene loci. In case that you don't want those novel annotation or you have a genome annotation file made by high confident source (ex: ISOseq), you can just replace `merged.gtf` with your GTF file. For example, we can replace `merged.gtf` with `tair10.gtf` if we don't want to do the guided assembly.
+
+## 3. Generate count matrixes using StringTie
+
+The following step should generate count files for each of the samples.
+```
+ls *_tophat2/accepted_hits.bam | perl -ne 'chomp; /(.+?)_tophat2/; $cmd="stringtie $_ -eB -o $1/$1.gtf -p 4 -G merged.gtf"; print "\nCMD: $cmd\n"; system $cmd'
+```
+
+The above perl one-liner should give us the following 6 commands. Each of them means "generate transcript read counts and gene read counts using the genome annotation file `merged.gtf`".
+```
+CMD: stringtie control_rep1_tophat2/accepted_hits.bam -eB -o control_rep1/control_rep1.gtf -p 4 -G merged.gtf
+
+CMD: stringtie control_rep2_tophat2/accepted_hits.bam -eB -o control_rep2/control_rep2.gtf -p 4 -G merged.gtf
+
+CMD: stringtie control_rep4_tophat2/accepted_hits.bam -eB -o control_rep4/control_rep4.gtf -p 4 -G merged.gtf
+
+CMD: stringtie treatment_rep5_tophat2/accepted_hits.bam -eB -o treatment_rep5/treatment_rep5.gtf -p 4 -G merged.gtf
+
+CMD: stringtie treatment_rep7_tophat2/accepted_hits.bam -eB -o treatment_rep7/treatment_rep7.gtf -p 4 -G merged.gtf
+
+CMD: stringtie treatment_rep9_tophat2/accepted_hits.bam -eB -o treatment_rep9/treatment_rep9.gtf -p 4 -G merged.gtf
+```
+
+StringTie offeres a convenient command `prepDE.py` to generate count matrixes for transcripts and genes, given that all above commands were correctly done and there are 6 files by `ls */*.gtf`.
+```
+Singularity> ls */*.gtf
+control_rep1/control_rep1.gtf  control_rep4/control_rep4.gtf      treatment_rep7/treatment_rep7.gtf
+control_rep2/control_rep2.gtf  treatment_rep5/treatment_rep5.gtf  treatment_rep9/treatment_rep9.gtf
+
+Singularity> prepDE.py
+
+Singularity> head transcript_count_matrix.csv
+transcript_id,control_rep1,control_rep2,control_rep4,treatment_rep5,treatment_rep7,treatment_rep9
+AT4G04480.1,0,0,0,0,0,0
+AT1G07730.2,0,0,0,0,0,2
+AT1G38430.1,0,0,0,0,0,0
+AT1G03340.1,7,4,4,4,4,11
+AT2G25040.1,0,0,0,0,0,0
+AT1G04440.1,52,68,88,106,85,113
+AT5G13090.1,34,24,23,19,29,19
+AT2G30190.1,0,0,0,0,0,0
+AT1G31390.1,0,0,0,0,0,0
+
+Singularity> head gene_count_matrix.csv
+gene_id,control_rep1,control_rep2,control_rep4,treatment_rep5,treatment_rep7,treatment_rep9
+AT5G59170,0,0,0,0,0,0
+AT1G38440,0,0,0,0,0,0
+AT2G46660,0,0,0,0,0,0
+AT5G25130,7,11,7,3,4,4
+AT5G54062,0,0,0,0,0,0
+AT5G61100,0,0,0,0,0,0
+AT5G06000,4,0,4,0,0,0
+AT4G25040,0,0,0,0,0,0
+MSTRG.10381,44,24,25,27,22,45
+```
+
+Note that `prepDE.py` is for Python2. There is another script named `prepDE.py3` for Python3. Also note that `MSTRG.10381` is a novel gene locus predicted by StringTie in case that the guided assembly was done as described in above step 2.
