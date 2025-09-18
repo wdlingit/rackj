@@ -4,7 +4,7 @@ This repository is currently for [rackj](https://sourceforge.net/projects/rackj/
 
 ## Installation
 
-It would be most convenient to use the [docker image](https://hub.docker.com/r/wdlin/rackj). Programs and packages required in our example walkthroughs should be all contained in the image file.
+It would be most convenient to use the [docker image](https://hub.docker.com/r/wdlin/rackj). Programs and packages required in our walkthrough examples should be all contained in the image file.
 
 <details>
   <summary>Manual install instruction</summary>
@@ -60,3 +60,7 @@ echo "export CLASSPATH" >> ~/.profile
 source ~/.profile
 ```
 </details>
+
+## Walkthough examples
+
+1. [Comparing isoform expression levels and ratios (against gene expression level) using StringTie](walkthrough/Stringtie_short_reads.md)
