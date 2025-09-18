@@ -212,3 +212,58 @@ MSTRG.10381,44,24,25,27,22,45
 ```
 
 Note that `prepDE.py` is for Python2. There is another script named `prepDE.py3` for Python3. Also note that `MSTRG.10381` is a novel gene locus predicted by StringTie in case that the guided assembly was done as described in above step 2.
+
+## 4. Isoform expression level comparison
+
+Since we have three control samples and three treatment samples where their transcript read counts are stored in file `transcript_count_matrix.csv`, the following R code should work for comparing the 3 treatment samples against the 3 control samples using `DESeq2`.
+
+```
+Singularity> R
+
+> library(DESeq2)
+
+> countData <- as.matrix(read.csv("transcript_count_matrix.csv", row.names="transcript_id"))
+> head(countData)
+            control_rep1 control_rep2 control_rep4 treatment_rep5
+AT4G04480.1            0            0            0              0
+AT1G07730.2            0            0            0              0
+AT1G38430.1            0            0            0              0
+AT1G03340.1            7            4            4              4
+AT2G25040.1            0            0            0              0
+AT1G04440.1           52           68           88            106
+            treatment_rep7 treatment_rep9
+AT4G04480.1              0              0
+AT1G07730.2              0              2
+AT1G38430.1              0              0
+AT1G03340.1              4             11
+AT2G25040.1              0              0
+AT1G04440.1             85            113
+
+# We do this because we know the first 3 columns are for the 3 control samples
+# where "A" will be the reference
+> condition= c("A","A","A","B","B","B")
+> df = data.frame(condition,row.names=colnames(countData))
+
+> dds <- DESeqDataSetFromMatrix(countData,colData=df,design=~condition)
+> dds <- DESeq(dds)
+
+> resultsNames(dds)
+[1] "Intercept"        "condition_B_vs_A"
+
+> write.csv(as.data.frame(results(dds,name="condition_B_vs_A")),file="desqOut.csv")
+
+> q()
+Save workspace image? [y/n/c]: n
+
+Singularity> head desqOut.csv
+"","baseMean","log2FoldChange","lfcSE","stat","pvalue","padj"
+"AT4G04480.1",0,NA,NA,NA,NA,NA
+"AT1G07730.2",0.322550149365598,1.8429268299077,4.03846570623945,0.45634331549736,0.648143120481551,NA
+"AT1G38430.1",0,NA,NA,NA,NA,NA
+"AT1G03340.1",5.52317051161533,0.331267683593407,1.30268193524514,0.254296674138703,0.799266369024993,0.999939960474882
+"AT2G25040.1",0,NA,NA,NA,NA,NA
+"AT1G04440.1",83.4751224366111,0.53923757786864,0.280024189372634,1.92568213152138,0.0541440763572674,0.555418282168473
+"AT5G13090.1",24.0349600628139,-0.285104934557586,0.517964774480711,-0.55043305762138,0.582022380056347,0.999939960474882
+"AT2G30190.1",0,NA,NA,NA,NA,NA
+"AT1G31390.1",0,NA,NA,NA,NA,NA
+```
