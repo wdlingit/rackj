@@ -59,6 +59,8 @@ For Docker and Docker Desktop user:
 3. run command `docker run -it --rm --mount type=bind,src=<path_to_ExampleData>,dst=/mnt wdlin/rackj`
 4. just remember that the ExampleData folder is bound to `/mnt`
 
+The maximum memory usage is about 2GB for this workthrough so it seems not needed to adjust any resource limits.
+
 ## 1. Mapping using TopHat2
 
 Since we are going to map reads, existing BAM files are not needed.
