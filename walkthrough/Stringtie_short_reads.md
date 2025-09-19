@@ -220,9 +220,10 @@ Since we have three control samples and three treatment samples where their tran
 ```
 Singularity> R
 
-> library(DESeq2)
+library(DESeq2)
 
-> countData <- as.matrix(read.csv("transcript_count_matrix.csv", row.names="transcript_id"))
+countData <- as.matrix(read.csv("transcript_count_matrix.csv", row.names="transcript_id"))
+
 > head(countData)
             control_rep1 control_rep2 control_rep4 treatment_rep5
 AT4G04480.1            0            0            0              0
@@ -241,16 +242,16 @@ AT1G04440.1             85            113
 
 # We do this because we know the first 3 columns are for the 3 control samples
 # where "A" will be the reference
-> condition= c("A","A","A","B","B","B")
-> df = data.frame(condition,row.names=colnames(countData))
+condition= c("A","A","A","B","B","B")
+df = data.frame(condition,row.names=colnames(countData))
 
-> dds <- DESeqDataSetFromMatrix(countData,colData=df,design=~condition)
-> dds <- DESeq(dds)
+dds <- DESeqDataSetFromMatrix(countData,colData=df,design=~condition)
+dds <- DESeq(dds)
 
 > resultsNames(dds)
 [1] "Intercept"        "condition_B_vs_A"
 
-> write.csv(as.data.frame(results(dds,name="condition_B_vs_A")),file="desqOut.csv")
+write.csv(as.data.frame(results(dds,name="condition_B_vs_A")),file="desqOut.csv")
 
 > q()
 Save workspace image? [y/n/c]: n
@@ -309,7 +310,7 @@ AT1G01040.1     AT1G01040
 AT1G01040.1     MSTRG.4
 ```
 
-The following R commands will do count matrix reading, table join, and the interaction term analysis. Note the code might be improved in some ways. For example, applying `voom` with some appropriate design so that logCMP values can be normalized differently. For another example, it is also possible to use DESeq2 to implement the interaction term idea.
+The following R commands will do count matrix reading, TMM normalization, table join, and the interaction term analysis. Note the code might be improved in some ways. For example, applying `voom` with some appropriate design and/or method so that logCMP values can be normalized in some way you like. For another example, it is also possible to use DESeq2 to implement the interaction term idea. It is also possible to compute isform expressino ratio separately for each sample and then do the comparison on 6 ratios of the samples.
 ```
 Singularity> R
 
@@ -317,56 +318,56 @@ Singularity> R
 Loading required package: limma
 
 # get logCPM of transcripts
-> transCounts <- read.csv("transcript_count_matrix.csv", row.names = 1)
-> transDge <- DGEList(counts = transCounts)
-> transDge <- calcNormFactors(transDge, method = "TMM")
-> transV <- voom(transDge, normalize="none")
-> logCPM_trans <- transV$E
+transCounts <- read.csv("transcript_count_matrix.csv", row.names = 1)
+transDge <- DGEList(counts = transCounts)
+transDge <- calcNormFactors(transDge, method = "TMM")
+transV <- voom(transDge, normalize="none")
+logCPM_trans <- transV$E
 
 # get logCPM of genes
-> geneCounts <- read.csv("gene_count_matrix.csv", row.names = 1)
-> geneDge <- DGEList(counts = geneCounts)
-> geneDge <- calcNormFactors(geneDge, method = "TMM")
-> geneV <- voom(geneDge, normalize="none")
-> logCPM_gene <- geneV$E
+geneCounts <- read.csv("gene_count_matrix.csv", row.names = 1)
+geneDge <- DGEList(counts = geneCounts)
+geneDge <- calcNormFactors(geneDge, method = "TMM")
+geneV <- voom(geneDge, normalize="none")
+logCPM_gene <- geneV$E
 
 # transcript-gene mapping table
-> transGeneMap <- read.table("TransGeneTable.tsv", header = FALSE, sep = "\t", stringsAsFactors = FALSE)
-> colnames(transGeneMap) <- c("transcript_id", "gene_id")
+transGeneMap <- read.table("TransGeneTable.tsv", header = FALSE, sep = "\t", stringsAsFactors = FALSE)
+colnames(transGeneMap) <- c("transcript_id", "gene_id")
 
 # minor checks before table join
 # => every transcript_id in logCPM_trans got
 # exactly one relation in the mapping table to a gene_id in logCPM_gene
-> valid_transcripts <- rownames(logCPM_trans)
-> valid_genes <- rownames(logCPM_gene)
-> filtered_map <- subset(transGeneMap, transcript_id %in% valid_transcripts & gene_id %in% valid_genes)
+valid_transcripts <- rownames(logCPM_trans)
+valid_genes <- rownames(logCPM_gene)
+filtered_map <- subset(transGeneMap, transcript_id %in% valid_transcripts & gene_id %in% valid_genes)
+
 > dim(filtered_map)
 [1] 44508     2
 > dim(logCPM_trans)
 [1] 44508     6
 
 # table join
-> logCPM_trans_df <- data.frame(transcript_id = rownames(logCPM_trans), logCPM_trans)
-> logCPM_gene_df <- data.frame(gene_id = rownames(logCPM_gene), logCPM_gene)
-> trans_with_gene <- merge(filtered_map, logCPM_trans_df, by = "transcript_id")
-> transGene_matrix <- merge(trans_with_gene, logCPM_gene_df, by = "gene_id", suffixes = c("_transcript", "_gene"))
+logCPM_trans_df <- data.frame(transcript_id = rownames(logCPM_trans), logCPM_trans)
+logCPM_gene_df <- data.frame(gene_id = rownames(logCPM_gene), logCPM_gene)
+trans_with_gene <- merge(filtered_map, logCPM_trans_df, by = "transcript_id")
+transGene_matrix <- merge(trans_with_gene, logCPM_gene_df, by = "gene_id", suffixes = c("_transcript", "_gene"))
 
 # build design and comparison
-> samples <- colnames(transGene_matrix[, -c(1,2)])
-> condition <- factor(ifelse(grepl("control", samples), "control", "treatment"))
-> condition <- relevel(condition, ref="control")
+samples <- colnames(transGene_matrix[, -c(1,2)])
+condition <- factor(ifelse(grepl("control", samples), "control", "treatment"))
+condition <- relevel(condition, ref="control")
+feature_type <- factor(ifelse(grepl("_transcript", samples), "transcript", "gene"))
+feature_type <- relevel(feature_type, ref="gene")
 
-> feature_type <- factor(ifelse(grepl("_transcript", samples), "transcript", "gene"))
-> feature_type <- relevel(feature_type, ref="gene")
+design <- model.matrix(~ condition * feature_type)
 
-> design <- model.matrix(~ condition * feature_type)
+expr_matrix <- transGene_matrix[, -c(1,2)]
+rownames(expr_matrix) <- transGene_matrix$transcript_id
+expr_matrix <- as.matrix(expr_matrix)
 
-> expr_matrix <- transGene_matrix[, -c(1,2)]
-> rownames(expr_matrix) <- transGene_matrix$transcript_id
-> expr_matrix <- as.matrix(expr_matrix)
-
-> fit <- lmFit(expr_matrix, design)
-> fit <- eBayes(fit)
+fit <- lmFit(expr_matrix, design)
+fit <- eBayes(fit)
 
 > colnames(fit$coefficients)
 [1] "(Intercept)"
@@ -374,10 +375,10 @@ Loading required package: limma
 [3] "feature_typetranscript"
 [4] "conditiontreatment:feature_typetranscript"
 
-> t <- topTable(fit, coef = "conditiontreatment:feature_typetranscript", number = Inf)
-> t_df <- data.frame(transcript_id = rownames(t), t)
-> t_annotated <- merge(t_df, filtered_map, by = "transcript_id")
-> write.csv(x=t_annotated,file="interactionTerm.csv")
+t <- topTable(fit, coef = "conditiontreatment:feature_typetranscript", number = Inf)
+t_df <- data.frame(transcript_id = rownames(t), t)
+t_annotated <- merge(t_df, filtered_map, by = "transcript_id")
+write.csv(x=t_annotated,file="interactionTerm.csv")
 
 > q()
 Save workspace image? [y/n/c]: n
