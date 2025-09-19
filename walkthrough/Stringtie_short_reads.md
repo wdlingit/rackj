@@ -1,5 +1,7 @@
 # Comparing isoform expression levels and ratios (against gene expression level) using StringTie
 
+**NOTE**: This walkthrough is actually _not_ related with rackj. Its earlier version contains a few steps that may use some rackj programs. They were removed (or replaced) to make this walkthrough as simple as possible.
+
 This page will go through the following items using short read pair-ended datasets of three control samples and three treatment samples:
 1. isoform read count estimation and gene read count computation
 2. isoform expression level comparison
