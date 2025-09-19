@@ -53,6 +53,12 @@ TAIR10_GFF3_genes_transposons.gff  control_rep1.merged.bam  control_rep4.merged.
 
 Note that the `ExampleData` folder was bounded as `/mnt` in the container. All necessary programs should be available so no need to do any installation. Also note the raw reads in this dataset contains only very small part of adapters so the adapter removal was not applied.
 
+For Docker and Docker Desktop user:
+1. extract ExampleData.zip and remember the path to the ExampleData folder
+2. open _terminal_ (buttom-right corner of Docker Desktop)
+3. run command `docker run -it --rm --mount type=bind,src=<path_to_ExampleData>,dst=/mnt wdlin/rackj`
+4. just remember that the ExampleData folder is bound to `/mnt`
+
 ## 1. Mapping using TopHat2
 
 Since we are going to map reads, existing BAM files are not needed.
