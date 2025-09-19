@@ -154,7 +154,7 @@ stringtie --merge -G tair10.gtf -o merged.gtf control_rep1.gtf control_rep2.gtf 
 
 ## 2A. Not applying guided assembly by StringTie
 
-The guided assembly step by StringTie would produce many novel transcripts and novel gene loci. In case that you don't want those novel annotation or you have a genome annotation file made by high confident source (ex: ISOseq), you can just replace `merged.gtf` with your GTF file. For example, we can replace `merged.gtf` with `tair10.gtf` if we don't want to do the guided assembly.
+The guided assembly step by StringTie would produce many novel transcripts and (maybe) novel gene loci. In case that you don't want those novel annotation or you have a genome annotation file made by high confident source (ex: ISOseq), you can just replace `merged.gtf` with your GTF file. For example, we can replace `merged.gtf` with `tair10.gtf` if we don't want to do the guided assembly.
 
 ## 3. Generate count matrixes using StringTie
 
@@ -211,11 +211,11 @@ AT4G25040,0,0,0,0,0,0
 MSTRG.10381,44,24,25,27,22,45
 ```
 
-Note that `prepDE.py` is for Python2. There is another script named `prepDE.py3` for Python3. Also note that `MSTRG.10381` is a novel gene locus predicted by StringTie in case that the guided assembly was done as described in above step 2.
+Note that `prepDE.py` is for Python2. There is another script named `prepDE.py3` for Python3. Also note that `MSTRG.10381` is a gene locus predicted by StringTie in case that the guided assembly was done as described in above step 2.
 
 ## 4. Isoform expression level comparison
 
-Since we have three control samples and three treatment samples where their transcript read counts are stored in file `transcript_count_matrix.csv`, the following R code should work for comparing the 3 treatment samples against the 3 control samples using `DESeq2`.
+Since we have three control samples and three treatment samples where their transcript read counts are stored in file `transcript_count_matrix.csv`, the following R code should work for comparing the three treatment samples against the three control samples using `DESeq2`.
 
 ```
 Singularity> R
