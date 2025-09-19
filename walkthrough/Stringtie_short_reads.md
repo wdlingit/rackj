@@ -268,7 +268,7 @@ Singularity> head desqOut.csv
 "AT1G31390.1",0,NA,NA,NA,NA,NA
 ```
 
-## 5. Isoform expression level comparison
+## 5. Isoform expression ratio comparison
 
 Changes of isoform expression ratio (isoform expression level against gene expression level) may represent changes of splicing preference. To detect significant changes of ratios between control samples and treatment samples, we may apply the interaction term analysis. Considering the four numbers for each transcript (i) logCPM_trans_ctrl, (ii) logCPM_gene_ctrl, and (iii) logCPM_trans_treatment, and (iv) logCPM_gene_treatment. Significant difference of differences
 
