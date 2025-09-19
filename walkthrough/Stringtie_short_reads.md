@@ -399,6 +399,13 @@ Singularity> head interactionTerm.csv
 "9","AT1G01060.1",0.00178572695080533,-0.690947538734663,0.0255353032615025,0.980202699326832,0.99969555515961,-6.40485242942288,"AT1G01060"
 ```
 
+Using a separatesheet program like Excel, the following criteria should help us to obtain a list of transcripts with significant ratio changes between control and treatment samples.
+1. `AveExpr >= 5` (this is actually high, but our example dataset is just 1% of real data)
+2. `P.Value <= 0.05`
+
+An example that can be easily confirmed is `MSTRG.13875.2`, a novel isoform of AT4G34150. Its `P.Value` is `0.0013` (`adj.P.Val` `0.27`). It is down-regulated (`logFC` `-4.2`).
+<img width="1920" height="926" alt="MSTRG 13875 2" src="https://github.com/user-attachments/assets/12585df0-68ef-4a9d-af4f-270b88c55f37" />
+
 ## 6. Visualization of read alignments and the gudided assembly
 
 Since TopHat2 is outputting BAM files sorted by position and we are not going to use them in this walkthrough anymore, it would be convenient for us to just move and rename them with meaningful new filenames for visualizations in tools like IGV. We should also index them for the visualization purpose.
@@ -419,3 +426,8 @@ samtools index treatment_rep5.sorted.bam
 samtools index treatment_rep7.sorted.bam
 samtools index treatment_rep9.sorted.bam
 ```
+
+With files `TAIR10_chr_all.fas`, `merged.gtf`, `*.sorted.bam`, and `*.sorted.bam.bai` available in a desktop computer, we can get read alignment visualization with the StringTie guided assembly by the following steps:
+1. From IGV menu, Genomes -> Load Genome from File, pick `TAIR10_chr_all.fas`. This should load chromosome sequences.
+2. File -> Load from File, pick `merged.gtf`. This should load the genome annotation made by the guided assembly.
+3. File -> Load from File, pick `*.sorted.bam`. This should load read alignment files of the 6 samples.
