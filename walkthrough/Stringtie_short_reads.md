@@ -88,8 +88,6 @@ Singularity> ls -l src/*.fq.gz
 ```
 
 the following perl one-liner can help us to form 6 commands of running TopHat2. Note that option `--transcriptome-index=tair10.transcriptome/known` was provided for the transcriptome index and `tair10.genome` was for the genome index. Option `-p 4` was for using 4 threads for mapping, adjust it if needed.
-<div style="white-space: pre-wrap;">
-<code>
 ```
 Singularity> ls src/*.fq.gz | sort | perl -ne 'chomp; /.+\/(.+)_R\d\./; push @{$hash{$1}},$_; if(eof){ for $k (sort keys %hash){ $cmd="tophat2 -o $k"."_tophat2 -p 4 --transcriptome-index=tair10.transcriptome/known tair10.genome @{$hash{$k}}"; print "\nCMD: $cmd\n"; } }'
 
@@ -105,8 +103,6 @@ CMD: tophat2 -o treatment_rep7_tophat2 -p 4 --transcriptome-index=tair10.transcr
 
 CMD: tophat2 -o treatment_rep9_tophat2 -p 4 --transcriptome-index=tair10.transcriptome/known tair10.genome src/treatment_rep9_R1.fq.gz src/treatment_rep9_R2.fq.gz
 ```
-</code>
-</div>
 
 The commands seem OK. So we add `system $cmd` for actual executing them.
 ```
