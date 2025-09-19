@@ -215,7 +215,7 @@ Note that `prepDE.py` is for Python2. There is another script named `prepDE.py3`
 
 ## 4. Isoform expression level comparison
 
-Since we have three control samples and three treatment samples where their transcript read counts are stored in file `transcript_count_matrix.csv`, the following R code should work for comparing the three treatment samples against the three control samples using `DESeq2`.
+Since we have three control samples and three treatment samples where their transcript read counts are stored in file `transcript_count_matrix.csv`, the following R commands should work for comparing the three treatment samples against the three control samples using `DESeq2`.
 
 ```
 Singularity> R
@@ -269,5 +269,84 @@ Singularity> head desqOut.csv
 ```
 
 ## 5. Isoform expression level comparison
+
+Changes of isoform expression ratio (isoform expression level against gene expression level) may represent changes of splicing preference. To detect significant changes of ratios between control samples and treatment samples, we may apply the interaction term analysis. Considering the four numbers for each transcript (i) logCPM_trans_ctrl, (ii) logCPM_gene_ctrl, and (iii) logCPM_trans_treatment, and (iv) logCPM_gene_treatment. Significant difference of differences
+
+(logCPM_trans_treatment - logCPM_gene_treatment) - (logCPM_trans_ctrl - logCPM_gene_ctrl)
+
+can be detected by the interaction term analysis, which is corresponing to
+
+(CPM_trans_treatment / logCPM_gene_treatment) / (CPM_trans_ctrl / CPM_gene_ctrl),
+
+i.e., fold-change of isofrom expression ratio of the transcript.
+
+To achieve the computation, we will need a transcript-gene mapping table. Parsing the GTF file `merged.gtf` (or `tair10.gtf` if guided assembly not applied) can give us this table.
+```
+Singularity> cat merged.gtf | perl -ne 'chomp; @t=split(/\t/); next if $t[2] ne "transcript"; print "$_\n"' | head
+Chr1    StringTie       transcript      3631    5899    1000    +       .       gene_id "MSTRG.1"; transcript_id "AT1G01010.1"; ref_gene_id "AT1G01010";
+Chr1    StringTie       transcript      5928    8737    1000    -       .       gene_id "MSTRG.2"; transcript_id "AT1G01020.1"; ref_gene_id "AT1G01020";
+Chr1    StringTie       transcript      6790    8737    1000    -       .       gene_id "MSTRG.2"; transcript_id "AT1G01020.2"; ref_gene_id "AT1G01020";
+Chr1    StringTie       transcript      6981    8737    1000    -       .       gene_id "MSTRG.2"; transcript_id "MSTRG.2.3";
+Chr1    StringTie       transcript      11649   13714   1000    -       .       gene_id "MSTRG.3"; transcript_id "AT1G01030.1"; ref_gene_id "AT1G01030";
+Chr1    StringTie       transcript      23146   31227   1000    +       .       gene_id "MSTRG.4"; transcript_id "AT1G01040.1"; ref_gene_id "AT1G01040";
+Chr1    StringTie       transcript      23416   31227   1000    +       .       gene_id "MSTRG.4"; transcript_id "AT1G01040.2"; ref_gene_id "AT1G01040";
+Chr1    StringTie       transcript      28500   28707   1000    +       .       gene_id "MSTRG.4"; transcript_id "AT1G01046.1"; ref_gene_id "AT1G01046";
+Chr1    StringTie       transcript      31170   33153   1000    -       .       gene_id "MSTRG.5"; transcript_id "AT1G01050.1"; ref_gene_id "AT1G01050";
+Chr1    StringTie       transcript      38752   40944   1000    -       .       gene_id "MSTRG.6"; transcript_id "AT1G01070.2"; ref_gene_id "AT1G01070";
+
+Singularity> cat merged.gtf | perl -ne 'chomp; @t=split(/\t/); next if $t[2] ne "transcript"; ($trans)=$t[8]=~/transcript_id "(.+?)"/; print "$trans\t$1\n" if $t[8]=~/^gene_id "(.+?)"/; print "$trans\t$1\n" if $t[8]=~/ref_gene_id "(.+?)"/' | sort | uniq > TransGeneTable.tsv
+
+Singularity> head TransGeneTable.tsv
+AT1G01010.1     AT1G01010
+AT1G01010.1     MSTRG.1
+AT1G01020.1     AT1G01020
+AT1G01020.1     MSTRG.2
+AT1G01020.2     AT1G01020
+AT1G01020.2     MSTRG.2
+AT1G01030.1     AT1G01030
+AT1G01030.1     MSTRG.3
+AT1G01040.1     AT1G01040
+AT1G01040.1     MSTRG.4
+```
+
+The following R commands will do count matrix reading, table join, and the interaction term analysis.
+```
+Singularity> R
+
+> library(edgeR)
+Loading required package: limma
+
+# get logCPM of transcripts
+> transCounts <- read.csv("transcript_count_matrix.csv", row.names = 1)
+> transDge <- DGEList(counts = transCounts)
+> transDge <- calcNormFactors(transDge, method = "TMM")
+> transV <- voom(transDge, normalize="none")
+> logCPM_trans <- transV$E
+
+# get logCPM of genes
+> geneCounts <- read.csv("gene_count_matrix.csv", row.names = 1)
+> geneDge <- DGEList(counts = geneCounts)
+> geneDge <- calcNormFactors(geneDge, method = "TMM")
+> geneV <- voom(geneDge, normalize="none")
+> logCPM_gene <- geneV$E
+
+# transcript-gene mapping table
+> transGeneMap <- read.table("TransGeneTable.tsv", header = FALSE, sep = "\t", stringsAsFactors = FALSE)
+> colnames(transGeneMap) <- c("transcript_id", "gene_id")
+
+# minor checks before table join
+# => every transcript_id in logCPM_trans got
+# exactly one relation in the mapping table to a gene_id in logCPM_gene
+> valid_transcripts <- rownames(logCPM_trans)
+> valid_genes <- rownames(logCPM_gene)
+> filtered_map <- subset(transGeneMap, transcript_id %in% valid_transcripts & gene_id %in% valid_genes)
+> dim(filtered_map)
+[1] 44508     2
+> dim(logCPM_trans)
+[1] 44508     6
+
+
+```
+
 
 ## 6. Visualization of read alignments and the gudided assembly
