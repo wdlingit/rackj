@@ -65,7 +65,7 @@ Build Bowtie2 genome index.
 bowtie2-build TAIR10_chr_all.fas tair10.genome
 ```
 
-Build TopHat2 transcriptome index. This is strongly suggested although TopHat2 would automatically build the index. Prebuilding the index would save time and avoid possible race condition. 
+Build TopHat2 transcriptome index. This is strongly suggested although TopHat2 would automatically build the index. Prebuilding the index would save time and avoid possible race condition (if you are going to submit commands to a job scheduler like slurm). 
 ```
 tophat2 -G TAIR10_GFF3_genes_transposons.gff --transcriptome-index=tair10.transcriptome/known tair10.genome
 ```
