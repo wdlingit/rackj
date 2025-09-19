@@ -127,7 +127,7 @@ Firstly we translate the `TAIR10_GFF3_genes_transposons.gff` into GTF file `tair
 gffread -T -o tair10.gtf TAIR10_GFF3_genes_transposons.gff 2>/dev/null
 ```
 
-StringTie-guided assembly has two steps. The first step is to generate a GTF file for each of the BAM file.
+StringTie-guided assembly has two steps. The first step is to generate a GTF file for each of the BAM files.
 ```
 ls *_tophat2/accepted_hits.bam | perl -ne 'chomp; /(.+?)_tophat2/; $cmd="stringtie $_ -o $1.gtf -p 4 -G tair10.gtf"; print "\nCMD: $cmd\n"; system $cmd'
 ```
@@ -211,7 +211,7 @@ AT4G25040,0,0,0,0,0,0
 MSTRG.10381,44,24,25,27,22,45
 ```
 
-Note that `prepDE.py` is for Python2. There is another script named `prepDE.py3` for Python3. Also note that `MSTRG.10381` is a gene locus predicted by StringTie in case that the guided assembly was done as described in above step 2.
+Note that `prepDE.py` is for Python2. There is another script named `prepDE.py3` for Python3. Also note that `MSTRG.10381` is a gene locus assigned by StringTie in case that the guided assembly was done as described in above step 2.
 
 ## 4. Isoform expression level comparison
 
@@ -276,7 +276,7 @@ Changes of isoform expression ratio (isoform expression level against gene expre
 
 can be detected by the interaction term analysis, which is corresponing to
 
-(CPM_trans_treatment / logCPM_gene_treatment) / (CPM_trans_ctrl / CPM_gene_ctrl),
+(CPM_trans_treatment / CPM_gene_treatment) / (CPM_trans_ctrl / CPM_gene_ctrl),
 
 i.e., fold-change of isofrom expression ratio of the transcript.
 
@@ -309,7 +309,7 @@ AT1G01040.1     AT1G01040
 AT1G01040.1     MSTRG.4
 ```
 
-The following R commands will do count matrix reading, table join, and the interaction term analysis.
+The following R commands will do count matrix reading, table join, and the interaction term analysis. Note the code might be improved in some ways. For example, applying `voom` with some appropriate design so that logCMP values can be normalized differently. For another example, it is also possible to use DESeq2 to implement the interaction term idea.
 ```
 Singularity> R
 
@@ -399,3 +399,22 @@ Singularity> head interactionTerm.csv
 ```
 
 ## 6. Visualization of read alignments and the gudided assembly
+
+Since TopHat2 is outputting BAM files sorted by position and we are not going to use them in this walkthrough anymore, it would be convenient for us to just move and rename them with meaningful new filenames for visualizations in tools like IGV. We should also index them for the visualization purpose.
+```
+Singularity> ls *_tophat2/accepted_hits.bam | perl -ne 'chomp; /(.+?)_tophat2/; $cmd="mv $_ $1.sorted.bam"; print "$cmd\n"; system $cmd'
+mv control_rep1_tophat2/accepted_hits.bam control_rep1.sorted.bam
+mv control_rep2_tophat2/accepted_hits.bam control_rep2.sorted.bam
+mv control_rep4_tophat2/accepted_hits.bam control_rep4.sorted.bam
+mv treatment_rep5_tophat2/accepted_hits.bam treatment_rep5.sorted.bam
+mv treatment_rep7_tophat2/accepted_hits.bam treatment_rep7.sorted.bam
+mv treatment_rep9_tophat2/accepted_hits.bam treatment_rep9.sorted.bam
+
+Singularity> ls *.sorted.bam | perl -ne 'chomp; $cmd="samtools index $_"; print "$cmd\n"; system $cmd'
+samtools index control_rep1.sorted.bam
+samtools index control_rep2.sorted.bam
+samtools index control_rep4.sorted.bam
+samtools index treatment_rep5.sorted.bam
+samtools index treatment_rep7.sorted.bam
+samtools index treatment_rep9.sorted.bam
+```
