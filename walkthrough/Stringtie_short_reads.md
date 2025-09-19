@@ -345,8 +345,54 @@ Loading required package: limma
 > dim(logCPM_trans)
 [1] 44508     6
 
+# table join
+> logCPM_trans_df <- data.frame(transcript_id = rownames(logCPM_trans), logCPM_trans)
+> logCPM_gene_df <- data.frame(gene_id = rownames(logCPM_gene), logCPM_gene)
+> trans_with_gene <- merge(filtered_map, logCPM_trans_df, by = "transcript_id")
+> transGene_matrix <- merge(trans_with_gene, logCPM_gene_df, by = "gene_id", suffixes = c("_transcript", "_gene"))
 
+# build design and comparison
+> condition <- factor(ifelse(grepl("control", samples), "control", "treatment"))
+> condition <- relevel(condition, ref="control")
+
+> feature_type <- factor(ifelse(grepl("_transcript", samples), "transcript", "gene"))
+> feature_type <- relevel(feature_type, ref="gene")
+
+> design <- model.matrix(~ condition * feature_type)
+
+> expr_matrix <- transGene_matrix[, -c(1,2)]
+> rownames(expr_matrix) <- transGene_matrix$transcript_id
+> expr_matrix <- as.matrix(expr_matrix)
+
+> fit <- lmFit(expr_matrix, design)
+> fit <- eBayes(fit)
+
+> colnames(fit$coefficients)
+[1] "(Intercept)"
+[2] "conditiontreatment"
+[3] "feature_typetranscript"
+[4] "conditiontreatment:feature_typetranscript"
+
+> t <- topTable(fit, coef = "conditiontreatment:feature_typetranscript", number = Inf)
+> write.csv(x=t,file="interactionTerm.csv")
+
+> q()
+Save workspace image? [y/n/c]: n
+
+Singularity> wc -l interactionTerm.csv
+44509 interactionTerm.csv
+
+Singularity> head interactionTerm.csv
+"","logFC","AveExpr","t","P.Value","adj.P.Val","B"
+"AT1G65620.3",3.17171072839312,0.101533711625915,45.3544116981344,1.16335388263166e-11,1.04575730587266e-07,10.4972002643799
+"AT1G65620.4",3.17171072839312,0.101533711625915,45.3544116981344,1.16335388263166e-11,1.04575730587266e-07,10.4972002643799
+"AT2G47300.2",-3.16813927449151,0.101533711625915,-45.3033410916115,1.17479700938332e-11,1.04575730587266e-07,10.4957480222477
+"AT5G07380.3",-3.16813927449151,0.101533711625915,-45.3033410916115,1.17479700938332e-11,1.04575730587266e-07,10.4957480222477
+"AT5G07380.2",-3.16813927449151,0.101533711625915,-45.3033410916115,1.17479700938332e-11,1.04575730587266e-07,10.4957480222477
+"AT1G64790.1",-7.68027359527381,4.91848793595046,-43.8332774206683,1.56462419158193e-11,1.16063822531547e-07,10.4519620868629
+"AT1G64790.2",7.37962701520874,4.99454244444212,31.2901815075309,2.9087633639545e-10,1.84947485432695e-06,9.83834056194353
+"AT2G01422.2",5.21624475708232,0.612667218798216,26.151560879182,1.36977977625167e-09,7.62076978517615e-06,9.35951368949312
+"AT1G44446.3",6.42672207148316,4.58279714071139,24.8778358255842,2.1062062931497e-09,1.04158921883897e-05,9.20399467045088
 ```
-
 
 ## 6. Visualization of read alignments and the gudided assembly
