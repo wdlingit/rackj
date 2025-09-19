@@ -403,8 +403,9 @@ Using a separatesheet program like Excel, the following criteria should help us 
 1. `AveExpr >= 5` (this is actually high, but our example dataset is just 1% of real data)
 2. `P.Value <= 0.05`
 
-An example that can be easily confirmed is `MSTRG.13875.2`, a novel isoform of AT4G34150. Its `P.Value` is `0.0013` (`adj.P.Val` `0.27`). It is down-regulated (`logFC` `-4.2`).
-<img width="1920" height="926" alt="MSTRG 13875 2" src="https://github.com/user-attachments/assets/12585df0-68ef-4a9d-af4f-270b88c55f37" />
+An example that can be easily confirmed is `MSTRG.13875.2`, a novel isoform of AT4G34150. Its `P.Value` is `0.0013` (`adj.P.Val` `0.27`). Its expression ratio is down-regulated (`logFC` `-4.2`).
+
+![MSTRG.13875.2](MSTRG.13875.2.png)
 
 ## 6. Visualization of read alignments and the gudided assembly
 
