@@ -1,9 +1,8 @@
 # Comparing alternative-splicing events using RackJ
 
 This page will go through the following items using short read pair-ended datasets of three control samples and three treatment samples:
-1. isoform read count estimation and gene read count computation
-2. isoform expression level comparison
-3. isofrom ratio (isoform against gene) comparison
+1. alternative-splicing event comparison based on read counts
+2. alternative-splicing evnet comparison based on ratios with regards to biological replicates
 
 We will use ExampleData.zip and the [docker image](https://hub.docker.com/r/wdlin/rackj) for all the programs. In this walkthrough, we will use Singularity to run the docker image. Usage example:
 
@@ -61,7 +60,7 @@ For Docker and Docker Desktop user:
 
 The maximum memory usage is about 2GB for this workthrough so it seems not needed to adjust any resource limits.
 
-## 1. Mapping using TopHat2
+## 1. Mapping using BLAT
 
 Since we are going to map reads, existing BAM files are not needed.
 ```
