@@ -64,3 +64,4 @@ source ~/.profile
 ## Walkthough examples
 
 1. [Comparing isoform expression levels and ratios (against gene expression level) using StringTie](walkthrough/Stringtie_short_reads.md)
+2. [Comparing alternative-splicing events using RackJ](walkthrough/Rackj_short_reads_AScomp.md)
