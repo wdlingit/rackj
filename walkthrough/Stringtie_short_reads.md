@@ -413,7 +413,7 @@ Using a separatesheet program like Excel, the following criteria should help us 
 1. `AveExpr >= 5` (this is actually high, but our example dataset is just 1% of real data)
 2. `P.Value <= 0.05`
 
-An example that can be easily confirmed is `MSTRG.13875.2`, a novel isoform of AT4G34150. Its `P.Value` is `0.0013` (`adj.P.Val` `0.27`). Its expression ratio is down-regulated (`logFC` `-4.2`). The major difference from `MSTRG.13875.2` to other isoform is that the long intron in center of the gene is retained. We can see that there are reads located in the intron in the three control samples but no such reads in the three treatment samples.
+An example that can be easily confirmed is `MSTRG.13875.2`, a novel isoform of AT4G34150. Its `P.Value` is `0.0013` (`adj.P.Val` `0.27`). Its expression ratio is down-regulated (`logFC` `-4.2`). The major difference from `MSTRG.13875.2` to other isoforms is that the long intron in center of the gene is retained. We can see that there are reads located in the intron in the three control samples but no such reads in the three treatment samples.
 
 ![MSTRG.13875.2](MSTRG.13875.2.png)
 
