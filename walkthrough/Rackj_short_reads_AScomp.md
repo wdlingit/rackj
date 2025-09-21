@@ -62,19 +62,16 @@ The maximum memory usage is about 2GB for this workthrough so it seems not neede
 
 ## 1. Mapping using BLAT
 
-Since we are going to map reads, existing BAM files are not needed.
+This is a optional step, you may adopt `*.merged.bam` in ExampleData.zip directly. 
+
+In case that we are going to map reads, existing BAM files are not needed.
 ```
 rm *.bam
 ```
 
-Build Bowtie2 genome index.
+Build indexes for `BioPerl` and `samtools`. This is strongly suggested for avoiding race condition in case you are going to submit mapping commands to a job scheduler like slurm.
 ```
-bowtie2-build TAIR10_chr_all.fas tair10.genome
-```
-
-Build TopHat2 transcriptome index. This is strongly suggested although TopHat2 would automatically build the index. Prebuilding the index would save time and avoid possible race condition (if you are going to submit commands to a job scheduler like slurm). 
-```
-tophat2 -G TAIR10_GFF3_genes_transposons.gff --transcriptome-index=tair10.transcriptome/known tair10.genome
+preindex.pl TAIR10_chr_all.fas
 ```
 
 Since we have pair-ended raw read files `src/*.fq.gz`,
@@ -94,37 +91,63 @@ Singularity> ls -l src/*.fq.gz
 -rwxr-xr-x+ 1 wdlin R418 22591761 Oct  4  2021 src/treatment_rep9_R2.fq.gz
 ```
 
-the following perl one-liner can help us to form 6 commands of running TopHat2. Note that option `--transcriptome-index=tair10.transcriptome/known` was provided for the transcriptome index and `tair10.genome` was for the genome index. Option `-p 4` was for using 4 threads for mapping, adjust it if needed.
+the following perl one-liner can help us to form 12 commands of running BLAT via rackj scripts `Mapping.pl` and `MappingBlat.pl`. Note that option option `-split 4` was for using 4 processes for mapping, adjust it if needed.
 ```
-Singularity> ls src/*.fq.gz | sort | perl -ne 'chomp; /.+\/(.+)_R\d\./; push @{$hash{$1}},$_; if(eof){ for $k (sort keys %hash){ $cmd="tophat2 -o $k"."_tophat2 -p 4 --transcriptome-index=tair10.transcriptome/known tair10.genome @{$hash{$k}}"; print "\nCMD: $cmd\n"; } }'
+Singularity> ls src/*.fq.gz | perl -ne 'chomp; /.+\/(.+?)\./; $cmd="gzip -dc $_ > $1.fq; Mapping.pl -split 4 x $1.fq $1.blat.bam MappingBlat.pl -target TAIR10_chr_all.fas -t=dna -q=rna; rm $1.fq"; print "\nCMD: $cmd\n";'
 
-CMD: tophat2 -o control_rep1_tophat2 -p 4 --transcriptome-index=tair10.transcriptome/known tair10.genome src/control_rep1_R1.fq.gz src/control_rep1_R2.fq.gz
+CMD: gzip -dc src/control_rep1_R1.fq.gz > control_rep1_R1.fq; Mapping.pl -split 4 x control_rep1_R1
+.fq control_rep1_R1.blat.bam MappingBlat.pl -target TAIR10_chr_all.fas -t=dna -q=rna; rm control_re
+p1_R1.fq
 
-CMD: tophat2 -o control_rep2_tophat2 -p 4 --transcriptome-index=tair10.transcriptome/known tair10.genome src/control_rep2_R1.fq.gz src/control_rep2_R2.fq.gz
+CMD: gzip -dc src/control_rep1_R2.fq.gz > control_rep1_R2.fq; Mapping.pl -split 4 x control_rep1_R2
+.fq control_rep1_R2.blat.bam MappingBlat.pl -target TAIR10_chr_all.fas -t=dna -q=rna; rm control_re
+p1_R2.fq
 
-CMD: tophat2 -o control_rep4_tophat2 -p 4 --transcriptome-index=tair10.transcriptome/known tair10.genome src/control_rep4_R1.fq.gz src/control_rep4_R2.fq.gz
-
-CMD: tophat2 -o treatment_rep5_tophat2 -p 4 --transcriptome-index=tair10.transcriptome/known tair10.genome src/treatment_rep5_R1.fq.gz src/treatment_rep5_R2.fq.gz
-
-CMD: tophat2 -o treatment_rep7_tophat2 -p 4 --transcriptome-index=tair10.transcriptome/known tair10.genome src/treatment_rep7_R1.fq.gz src/treatment_rep7_R2.fq.gz
-
-CMD: tophat2 -o treatment_rep9_tophat2 -p 4 --transcriptome-index=tair10.transcriptome/known tair10.genome src/treatment_rep9_R1.fq.gz src/treatment_rep9_R2.fq.gz
+CMD: gzip -dc src/control_rep2_R1.fq.gz > control_rep2_R1.fq; Mapping.pl -split 4 x control_rep2_R1
+.fq control_rep2_R1.blat.bam MappingBlat.pl -target TAIR10_chr_all.fas -t=dna -q=rna; rm control_re
+p2_R1.fq
+(... deleted)
 ```
+
+TODO: need parameter description here.
 
 The commands seem OK. So we add `system $cmd` for actual executing them.
 ```
-ls src/*.fq.gz | sort | perl -ne 'chomp; /.+\/(.+)_R\d\./; push @{$hash{$1}},$_; if(eof){ for $k (sort keys %hash){ $cmd="tophat2 -o $k"."_tophat2 -p 4 --transcriptome-index=tair10.transcriptome/known tair10.genome @{$hash{$k}}"; print "\nCMD: $cmd\n"; system $cmd } }'
+ls src/*.fq.gz | perl -ne 'chomp; /.+\/(.+?)\./; $cmd="gzip -dc $_ > $1.fq; Mapping.pl -split 4 x $1.fq $1.blat.bam MappingBlat.pl -target TAIR10_chr_all.fas -t=dna -q=rna; rm $1.fq"; print "\nCMD: $cmd\n"; system $cmd'
 ```
 
-Output BAM files would be `*_tophat2/accepted_hits.bam`.
+Output BAM files of the last command would be `*.blat.bam`.
 ```
-Singularity> ls -l *_tophat2/accepted_hits.bam
--rwxrwxrwx+ 1 wdlin R418 40533905 Sep 18 14:43 control_rep1_tophat2/accepted_hits.bam
--rwxrwxrwx+ 1 wdlin R418 41634756 Sep 18 14:45 control_rep2_tophat2/accepted_hits.bam
--rwxrwxrwx+ 1 wdlin R418 39169407 Sep 18 14:47 control_rep4_tophat2/accepted_hits.bam
--rwxrwxrwx+ 1 wdlin R418 39090724 Sep 18 14:49 treatment_rep5_tophat2/accepted_hits.bam
--rwxrwxrwx+ 1 wdlin R418 41104212 Sep 18 14:50 treatment_rep7_tophat2/accepted_hits.bam
--rwxrwxrwx+ 1 wdlin R418 40041940 Sep 18 14:52 treatment_rep9_tophat2/accepted_hits.bam
+Singularity> ls -l *.blat.bam
+-rwxrwxrwx+ 1 wdlin R418 20462399 Sep 21 13:54 control_rep1_R1.blat.bam
+-rwxrwxrwx+ 1 wdlin R418 20337560 Sep 21 13:54 control_rep1_R2.blat.bam
+-rwxrwxrwx+ 1 wdlin R418 20980407 Sep 21 13:54 control_rep2_R1.blat.bam
+-rwxrwxrwx+ 1 wdlin R418 20874369 Sep 21 13:55 control_rep2_R2.blat.bam
+-rwxrwxrwx+ 1 wdlin R418 19785876 Sep 21 13:55 control_rep4_R1.blat.bam
+-rwxrwxrwx+ 1 wdlin R418 19655968 Sep 21 13:55 control_rep4_R2.blat.bam
+-rwxrwxrwx+ 1 wdlin R418 19713120 Sep 21 13:55 treatment_rep5_R1.blat.bam
+-rwxrwxrwx+ 1 wdlin R418 19576079 Sep 21 13:56 treatment_rep5_R2.blat.bam
+-rwxrwxrwx+ 1 wdlin R418 20835627 Sep 21 13:56 treatment_rep7_R1.blat.bam
+-rwxrwxrwx+ 1 wdlin R418 20736819 Sep 21 13:56 treatment_rep7_R2.blat.bam
+-rwxrwxrwx+ 1 wdlin R418 20219439 Sep 21 13:57 treatment_rep9_R1.blat.bam
+-rwxrwxrwx+ 1 wdlin R418 20108811 Sep 21 13:57 treatment_rep9_R2.blat.bam
+```
+
+As they are read alignment files of read1 and read2 separately, 
+```
+Singularity> ls *.blat.bam | perl -ne 'chomp; /(.+?)_R\d\./; push @{$hash{$1}},$_; if(eof){ for $key (sort keys %hash){ $cmd="samtools merge -fn /dev/stdout @{$hash{$key}} | samtools view /dev/stdin | SamReverse.pl _1 | samtools view -Sbo $key.merged.bam -T TAIR10_chr_all.fas /dev/stdin"; print "\nCMD: $cmd\n"; system $cmd } }'
+
+CMD: samtools merge -fn /dev/stdout control_rep1_R1.blat.bam control_rep1_R2.blat.bam | samtools view /dev/stdin | SamReverse.pl _1 | samtools view -Sbo control_rep1.merged.bam -T TAIR10_chr_all.fas /dev/stdin
+
+CMD: samtools merge -fn /dev/stdout control_rep2_R1.blat.bam control_rep2_R2.blat.bam | samtools view /dev/stdin | SamReverse.pl _1 | samtools view -Sbo control_rep2.merged.bam -T TAIR10_chr_all.fas /dev/stdin
+
+CMD: samtools merge -fn /dev/stdout control_rep4_R1.blat.bam control_rep4_R2.blat.bam | samtools view /dev/stdin | SamReverse.pl _1 | samtools view -Sbo control_rep4.merged.bam -T TAIR10_chr_all.fas /dev/stdin
+
+CMD: samtools merge -fn /dev/stdout treatment_rep5_R1.blat.bam treatment_rep5_R2.blat.bam | samtools view /dev/stdin | SamReverse.pl _1 | samtools view -Sbo treatment_rep5.merged.bam -T TAIR10_chr_all.fas /dev/stdin
+
+CMD: samtools merge -fn /dev/stdout treatment_rep7_R1.blat.bam treatment_rep7_R2.blat.bam | samtools view /dev/stdin | SamReverse.pl _1 | samtools view -Sbo treatment_rep7.merged.bam -T TAIR10_chr_all.fas /dev/stdin
+
+CMD: samtools merge -fn /dev/stdout treatment_rep9_R1.blat.bam treatment_rep9_R2.blat.bam | samtools view /dev/stdin | SamReverse.pl _1 | samtools view -Sbo treatment_rep9.merged.bam -T TAIR10_chr_all.fas /dev/stdin
 ```
 
 ## 2. Guided assembly by StringTie
