@@ -1,7 +1,7 @@
 # Comparing alternative-splicing events using RackJ
 
 This page will go through the following items using short read pair-ended datasets of three control samples and three treatment samples:
-1. alternative-splicing event comparison based on read counts
+1. alternative-splicing event comparison between two merged samples
 2. alternative-splicing evnet comparison based on ratios with respects to biological replicates
 
 We will use ExampleData.zip and the [docker image](https://hub.docker.com/r/wdlin/rackj) for all the programs. In this walkthrough, we will use Singularity to run the docker image. Usage example:
@@ -62,7 +62,7 @@ The maximum memory usage is about 2GB for this workthrough so it seems not neede
 
 ## 1. Mapping using BLAT
 
-**This is a optional step**, you may adopt `*.merged.bam` in ExampleData.zip directly. 
+**This is an optional step**, you may adopt `*.merged.bam` in ExampleData.zip directly. 
 
 In case that we are going to map reads, existing BAM files are no longer needed.
 ```
@@ -158,7 +158,7 @@ Singularity> ls -l *.merged.bam
 
 ## 2. Extract gene-exon coordinates
 
-**This is a optional step**, you may adopt `tair10.strand.cgff` and `tair10.strand.model` in ExampleData.zip directly. 
+**This is an optional step**, you may adopt `tair10.strand.cgff` and `tair10.strand.model` in ExampleData.zip directly. 
 
 ## 3. Compute basic numbers, separate biological replicates
 
@@ -172,6 +172,6 @@ ubuntu@vm1755154910250-11235-iaas:~/ExampleData$ ls *.merged.bam | perl -ne 'cho
 ubuntu@vm1755154910250-11235-iaas:~/ExampleData$ ls *.merged.bam | perl -ne 'chomp; /(.+?)_rep/; push @{$hash{$1}},$_; if(eof){ for $key (sort keys %hash){ $cmd="ASnumbers.pl -model tair10.strand.model tair10.strand.cgff $key @{$hash{$key}} > $key.numbers.log"; print "\nCMD: $cmd\n"; system "$cmd"; } }'
 ```
 
-## 4. Alternative-splicing event comparison based on read counts of merged samples
+## 4. Alternative-splicing event comparison between two merged samples
 
 ## 5. Alternative-splicing evnet comparison based on ratios with respects to biological replicates
