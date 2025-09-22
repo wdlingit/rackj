@@ -158,7 +158,7 @@ Singularity> ls -l *.merged.bam
 
 ## 2. Extract gene-exon coordinates
 
-**This is a optional step**, you may adopt `tair10.strand.cgff` in ExampleData.zip directly. 
+**This is a optional step**, you may adopt `tair10.strand.cgff` and `tair10.strand.model` in ExampleData.zip directly. 
 
 ## 3. Compute basic numbers, separate biological replicates
 
