@@ -163,38 +163,7 @@ Singularity> ls -l *.merged.bam
 ## 3. Compute basic numbers, separate biological replicates
 
 ```
-Singularity> ls *.merged.bam | perl -ne 'chomp; /(.+?)\./; push @{$hash{$1}},$_; if(eof){ for $key (sort keys %hash){ $cmd="java rnaseq.RPKMComputer -GFF tair10.strand.cgff -model tair10.strand.model -M SAMun ".join(" -M SAMun ",@{$hash{$key}})." -O $key -ID 0.90 -direction true"; print "\nCMD: $cmd\n"; system "$cmd >> $key.log" } }'
-
-CMD: java rnaseq.RPKMComputer -GFF tair10.strand.cgff -model tair10.strand.model -M SAMun control_rep1.merged.bam -O control_rep1 -ID 0.90 -direction true
-(deleted...)
-```
-
-```
-Singularity> ls *.merged.bam | perl -ne 'chomp; /(.+?)\./; push @{$hash{$1}},$_; if(eof){ for $key (sort keys %hash){ $cmd="java rnaseq.ExonCounter -GFF tair10.strand.cgff -M SAMun ".join(" -M SAMun ",@{$hash{$key}})." -O $key -intronic true -ID 0.90 -direction true"; print "\nCMD: $cmd\n"; system "$cmd >> $key.log" } }'
-
-CMD: java rnaseq.ExonCounter -GFF tair10.strand.cgff -M SAMun control_rep1.merged.bam -O control_rep1 -intronic true -ID 0.90 -direction true
-(deleted...)
-```
-
-```
-Singularity> ls *.merged.bam | perl -ne 'chomp; /(.+?)\./; push @{$hash{$1}},$_; if(eof){ for $key (sort keys %hash){ $cmd="java rnaseq.GeneCoverageArray -M SAMun ".join(" -M SAMun ",@{$hash{$key}})." -GFF tair10.strand.cgff -exon false -O $key -ID 0.90 -direction true"; print "\nCMD: $cmd\n"; system "$cmd >> $key.log" } }'
-
-CMD: java rnaseq.GeneCoverageArray -M SAMun control_rep1.merged.bam -GFF tair10.strand.cgff -exon false -O control_rep1 -ID 0.90 -direction true
-(deleted...)
-```
-
-```
-Singularity> ls *.geneCoverage | perl -ne 'chomp; $cmd="intronExonAvgDepth.pl tair10.strand.cgff $_"; print "\nCMD: $cmd\n"; system $cmd'
-
-CMD: intronExonAvgDepth.pl tair10.strand.cgff control_rep1.geneCoverage
-(deleted...)
-```
-
-```
-Singularity> ls *.merged.bam | perl -ne 'chomp; /(.+?)\./; push @{$hash{$1}},$_; if(eof){ for $key (sort keys %hash){ $cmd="java rnaseq.FineSpliceCounter -M SAMun ".join(" -M SAMun ",@{$hash{$key}})." -GFF tair10.strand.cgff -model tair10.strand.model -O $key -ID 0.90 -J 2 -direction true"; print "\nCMD: $cmd\n"; system "$cmd >> $key.log" } }'
-
-CMD: java rnaseq.FineSpliceCounter -M SAMun control_rep1.merged.bam -GFF tair10.strand.cgff -model tair10.strand.model -O control_rep1 -ID 0.90 -J 2 -direction true
-(deleted...)
+ubuntu@vm1755154910250-11235-iaas:~/ExampleData$ ls *.merged.bam | perl -ne 'chomp; /(.+?)\./; push @{$hash{$1}},$_; if(eof){ for $key (sort keys %hash){ $cmd="ASnumbers.pl -model tair10.strand.model tair10.strand.cgff $key @{$hash{$key}}"; print "\nCMD: $cmd\n"; }}#system "$cmd >> $key.log" } }'
 ```
 
 ## 3. Compute basic numbers, merged biological replicates
