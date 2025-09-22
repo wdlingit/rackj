@@ -62,9 +62,9 @@ The maximum memory usage is about 2GB for this workthrough so it seems not neede
 
 ## 1. Mapping using BLAT
 
-This is a optional step, you may adopt `*.merged.bam` in ExampleData.zip directly. 
+**This is a optional step**, you may adopt `*.merged.bam` in ExampleData.zip directly. 
 
-In case that we are going to map reads, existing BAM files are not needed.
+In case that we are going to map reads, existing BAM files are no longer needed.
 ```
 rm *.bam
 ```
@@ -91,25 +91,23 @@ Singularity> ls -l src/*.fq.gz
 -rwxr-xr-x+ 1 wdlin R418 22591761 Oct  4  2021 src/treatment_rep9_R2.fq.gz
 ```
 
-the following perl one-liner can help us to form 12 commands of running BLAT via rackj scripts `Mapping.pl` and `MappingBlat.pl`. Note that option option `-split 4` was for using 4 processes for mapping, adjust it if needed.
+the following perl one-liner can help us to form 12 commands of running BLAT via rackj scripts `Mapping.pl` and `MappingBlat.pl`. We list only one of the commands for convenience.
 ```
 Singularity> ls src/*.fq.gz | perl -ne 'chomp; /.+\/(.+?)\./; $cmd="gzip -dc $_ > $1.fq; Mapping.pl -split 4 x $1.fq $1.blat.bam MappingBlat.pl -target TAIR10_chr_all.fas -t=dna -q=rna; rm $1.fq"; print "\nCMD: $cmd\n";'
 
 CMD: gzip -dc src/control_rep1_R1.fq.gz > control_rep1_R1.fq; Mapping.pl -split 4 x control_rep1_R1
 .fq control_rep1_R1.blat.bam MappingBlat.pl -target TAIR10_chr_all.fas -t=dna -q=rna; rm control_re
 p1_R1.fq
-
-CMD: gzip -dc src/control_rep1_R2.fq.gz > control_rep1_R2.fq; Mapping.pl -split 4 x control_rep1_R2
-.fq control_rep1_R2.blat.bam MappingBlat.pl -target TAIR10_chr_all.fas -t=dna -q=rna; rm control_re
-p1_R2.fq
-
-CMD: gzip -dc src/control_rep2_R1.fq.gz > control_rep2_R1.fq; Mapping.pl -split 4 x control_rep2_R1
-.fq control_rep2_R1.blat.bam MappingBlat.pl -target TAIR10_chr_all.fas -t=dna -q=rna; rm control_re
-p2_R1.fq
 (... deleted)
 ```
-
-TODO: need parameter description here.
+Points to be noticed and parameter explanation:
+1. BLAT accepts plain text FASTA files so we have `gzip -dc src/control_rep1_R1.fq.gz > control_rep1_R1.fq` and `rm control_rep1_R1.fq` at the beginning and at the end.
+2. `-split 4` asks `Mapping.pl` to split the read file into 4 share and executes 4 `MappingBlat.pl` for them, respectively. Note that BLAT would build a lookup table of the genome in memory, this costs some memroy.
+3. `x`: a dummy parameter, please keep it.
+4. `control_rep1_R1.fq`: the read file.
+5. `control_rep1_R1.blat.bam`: output BAM file, it would be sorted-by-name.
+6. `-target TAIR10_chr_all.fas`: let `MappingBlat.pl` know the genome FASTA file so that it can invoke `blat` with this genome FASTA and using the genome FASTA when translating PSLx into SAM.
+7. `-t=dna -q=rna`: parameters to be passed to `blat`. `-q=rna` for RNAseq reads.
 
 The commands seem OK. So we add `system $cmd` for actual executing them.
 ```
@@ -133,23 +131,21 @@ Singularity> ls -l *.blat.bam
 -rwxrwxrwx+ 1 wdlin R418 20108811 Sep 21 13:57 treatment_rep9_R2.blat.bam
 ```
 
-As they are read alignment files of read1 and read2 separately, (not finished)
+As they are read alignment files of read1 and read2 separately, the next command would generate 6 commands to merge them and keep the BAM file sorted-by-name.
 ```
 Singularity> ls *.blat.bam | perl -ne 'chomp; /(.+?)_R\d\./; push @{$hash{$1}},$_; if(eof){ for $key (sort keys %hash){ $cmd="samtools merge -fn /dev/stdout @{$hash{$key}} | samtools view /dev/stdin | SamReverse.pl _1 | samtools view -Sbo $key.merged.bam -T TAIR10_chr_all.fas /dev/stdin"; print "\nCMD: $cmd\n"; system $cmd } }'
 
 CMD: samtools merge -fn /dev/stdout control_rep1_R1.blat.bam control_rep1_R2.blat.bam | samtools view /dev/stdin | SamReverse.pl _1 | samtools view -Sbo control_rep1.merged.bam -T TAIR10_chr_all.fas /dev/stdin
-
-CMD: samtools merge -fn /dev/stdout control_rep2_R1.blat.bam control_rep2_R2.blat.bam | samtools view /dev/stdin | SamReverse.pl _1 | samtools view -Sbo control_rep2.merged.bam -T TAIR10_chr_all.fas /dev/stdin
-
-CMD: samtools merge -fn /dev/stdout control_rep4_R1.blat.bam control_rep4_R2.blat.bam | samtools view /dev/stdin | SamReverse.pl _1 | samtools view -Sbo control_rep4.merged.bam -T TAIR10_chr_all.fas /dev/stdin
-
-CMD: samtools merge -fn /dev/stdout treatment_rep5_R1.blat.bam treatment_rep5_R2.blat.bam | samtools view /dev/stdin | SamReverse.pl _1 | samtools view -Sbo treatment_rep5.merged.bam -T TAIR10_chr_all.fas /dev/stdin
-
-CMD: samtools merge -fn /dev/stdout treatment_rep7_R1.blat.bam treatment_rep7_R2.blat.bam | samtools view /dev/stdin | SamReverse.pl _1 | samtools view -Sbo treatment_rep7.merged.bam -T TAIR10_chr_all.fas /dev/stdin
-
-CMD: samtools merge -fn /dev/stdout treatment_rep9_R1.blat.bam treatment_rep9_R2.blat.bam | samtools view /dev/stdin | SamReverse.pl _1 | samtools view -Sbo treatment_rep9.merged.bam -T TAIR10_chr_all.fas /dev/stdin
+(... deleted)
 ```
+Points to be noticed and parameter explanation:
+1. `samtools merge -fn /dev/stdout control_rep1_R1.blat.bam control_rep1_R2.blat.bam`: merges two BAM files and write into `/dev/stdout`. We need `-f` to force write into the existing `/dev/stdout`. We also need `-n` because the two input BAM files are sorted-by-name.
+2. `samtools view /dev/stdin | SamReverse.pl _1`: In pair-ended RNAseq, read1 and read2 are usually opposite to each other. In this example, our read2 reads are following gene orientation and read1 reads are opposite to the gene orientation. `samtools view /dev/stdin` translates BAM into SAM and `SamReverse.pl _1` reverses directions of read1 alignments. (*)
+3. `samtools view -Sbo`: this last part translates read1-reversed input SAM into BAM.
 
+(*): in case you are using alignment tools that aligns read1 and read2 at the same time (ex: TopHat2 or HISAT2), use `SamReverse.pl -byFlag 64` for reverse read1 directions.
+
+Now we have 6 `*.merged.bam` files, each of them corresponds to one sample.
 ```
 Singularity> ls -l *.merged.bam
 -rwxrwxrwx+ 1 wdlin R418 37814246 Sep 21 14:40 control_rep1.merged.bam
@@ -161,6 +157,8 @@ Singularity> ls -l *.merged.bam
 ```
 
 ## 2. Extract gene-exon coordinates
+
+**This is a optional step**, you may adopt `tair10.strand.cgff` in ExampleData.zip directly. 
 
 ## 3. Compute basic numbers, separate biological replicates
 
