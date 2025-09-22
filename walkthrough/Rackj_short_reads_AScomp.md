@@ -163,49 +163,13 @@ Singularity> ls -l *.merged.bam
 ## 3. Compute basic numbers, separate biological replicates
 
 ```
-ubuntu@vm1755154910250-11235-iaas:~/ExampleData$ ls *.merged.bam | perl -ne 'chomp; /(.+?)\./; push @{$hash{$1}},$_; if(eof){ for $key (sort keys %hash){ $cmd="ASnumbers.pl -model tair10.strand.model tair10.strand.cgff $key @{$hash{$key}}"; print "\nCMD: $cmd\n"; }}#system "$cmd >> $key.log" } }'
+ubuntu@vm1755154910250-11235-iaas:~/ExampleData$ ls *.merged.bam | perl -ne 'chomp; /(.+?)\./; push @{$hash{$1}},$_; if(eof){ for $key (sort keys %hash){ $cmd="ASnumbers.pl -model tair10.strand.model tair10.strand.cgff $key @{$hash{$key}}"; print "\nCMD: $cmd\n"; system "$cmd >> $key.log"; } }'
 ```
 
 ## 3. Compute basic numbers, merged biological replicates
 
 ```
-Singularity> ls *.merged.bam | perl -ne 'chomp; /(.+)_rep/; $key=$1; push @{$hash{$key}},$_; if(eof){ for $key (sort keys %hash){ $cmd="java rnaseq.RPKMComputer -GFF tair10.strand.cgff -model tair10.strand.model -M SAMun ".join(" -M SAMun ",@{$hash{$key}})." -O $key -ID 0.90 -direction true"; print "\nCMD: $cmd\n"; system "$cmd >> $key.log" } }'
-
-CMD: java rnaseq.RPKMComputer -GFF tair10.strand.cgff -model tair10.strand.model -M SAMun control_rep1.merged.bam -M SAMun control_rep2.merged.bam -M SAMun control_rep4.merged.bam -O control -ID 0.90 -direction true
-
-CMD: java rnaseq.RPKMComputer -GFF tair10.strand.cgff -model tair10.strand.model -M SAMun treatment_rep5.merged.bam -M SAMun treatment_rep7.merged.bam -M SAMun treatment_rep9.merged.bam -O treatment -ID 0.90 -direction true
-```
-
-```
-Singularity> ls *.merged.bam | perl -ne 'chomp; /(.+)_rep/; $key=$1; push @{$hash{$key}},$_; if(eof){ for $key (sort keys %hash){ $cmd="java rnaseq.ExonCounter -GFF tair10.strand.cgff -M SAMun ".join(" -M SAMun ",@{$hash{$key}})." -O $key -intronic true -ID 0.90 -direction true"; print "\nCMD: $cmd\n"; system "$cmd >> $key.log" } }'
-
-CMD: java rnaseq.ExonCounter -GFF tair10.strand.cgff -M SAMun control_rep1.merged.bam -M SAMun control_rep2.merged.bam -M SAMun control_rep4.merged.bam -O control -intronic true -ID 0.90 -direction true
-
-CMD: java rnaseq.ExonCounter -GFF tair10.strand.cgff -M SAMun treatment_rep5.merged.bam -M SAMun treatment_rep7.merged.bam -M SAMun treatment_rep9.merged.bam -O treatment -intronic true -ID 0.90 -direction true
-```
-
-```
-Singularity> ls *.merged.bam | perl -ne 'chomp; /(.+)_rep/; $key=$1; push @{$hash{$key}},$_; if(eof){ for $key (sort keys %hash){ $cmd="java rnaseq.GeneCoverageArray -M SAMun ".join(" -M SAMun ",@{$hash{$key}})." -GFF tair10.strand.cgff -exon false -O $key -ID 0.90 -direction true"; print "\nCMD: $cmd\n"; system "$cmd >> $key.log" } }'
-
-CMD: java rnaseq.GeneCoverageArray -M SAMun control_rep1.merged.bam -M SAMun control_rep2.merged.bam -M SAMun control_rep4.merged.bam -GFF tair10.strand.cgff -exon false -O control -ID 0.90 -direction true
-
-CMD: java rnaseq.GeneCoverageArray -M SAMun treatment_rep5.merged.bam -M SAMun treatment_rep7.merged.bam -M SAMun treatment_rep9.merged.bam -GFF tair10.strand.cgff -exon false -O treatment -ID 0.90 -direction true
-```
-
-```
-Singularity> ls *.geneCoverage | perl -ne 'print if not /.+_.+\./' | perl -ne 'chomp; $cmd="intronExonAvgDepth.pl tair10.strand.cgff $_"; print "\nCMD: $cmd\n"; system $cmd'
-
-CMD: intronExonAvgDepth.pl tair10.strand.cgff control.geneCoverage
-
-CMD: intronExonAvgDepth.pl tair10.strand.cgff treatment.geneCoverage
-```
-
-```
-Singularity> ls *.merged.bam | perl -ne 'chomp; /(.+)_rep/; $key=$1; push @{$hash{$key}},$_; if(eof){ for $key (sort keys %hash){ $cmd="java rnaseq.FineSpliceCounter -M SAMun ".join(" -M SAMun ",@{$hash{$key}})." -GFF tair10.strand.cgff -model tair10.strand.model -O $key -ID 0.90 -J 2 -direction true"; print "\nCMD: $cmd\n"; system "$cmd >> $key.log" } }'
-
-CMD: java rnaseq.FineSpliceCounter -M SAMun control_rep1.merged.bam -M SAMun control_rep2.merged.bam -M SAMun control_rep4.merged.bam -GFF tair10.strand.cgff -model tair10.strand.model -O control -ID 0.90 -J 2 -direction true
-
-CMD: java rnaseq.FineSpliceCounter -M SAMun treatment_rep5.merged.bam -M SAMun treatment_rep7.merged.bam -M SAMun treatment_rep9.merged.bam -GFF tair10.strand.cgff -model tair10.strand.model -O treatment -ID 0.90 -J 2 -direction true
+ubuntu@vm1755154910250-11235-iaas:~/ExampleData$ ls *.merged.bam | perl -ne 'chomp; /(.+?)_rep/; push @{$hash{$1}},$_; if(eof){ for $key (sort keys %hash){ $cmd="ASnumbers.pl -model tair10.strand.model tair10.strand.cgff $key @{$hash{$key}}"; print "\nCMD: $cmd\n"; system "$cmd >> $key.log"; } }'
 ```
 
 ## 4. Alternative-splicing event comparison based on read counts of merged samples
