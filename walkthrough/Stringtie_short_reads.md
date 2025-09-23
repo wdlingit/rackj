@@ -99,8 +99,11 @@ Singularity> ls -l src/*.fq.gz
 
 the following perl one-liner can help us to form 6 commands of running TopHat2. Note that option `--transcriptome-index=tair10.transcriptome/known` was provided for the transcriptome index and `tair10.genome` was for the genome index. Option `-p 4` was for using 4 threads for mapping, adjust it if needed.
 ```
-Singularity> ls src/*.fq.gz | sort | perl -ne 'chomp; /.+\/(.+)_R\d\./; push @{$hash{$1}},$_; if(eof){ for $k (sort keys %hash){ $cmd="tophat2 -o $k"."_tophat2 -p 4 --transcriptome-index=tair10.transcriptome/known tair10.genome @{$hash{$k}}"; print "\nCMD: $cmd\n"; } }'
+ls src/*.fq.gz | sort | perl -ne 'chomp; /.+\/(.+)_R\d\./; push @{$hash{$1}},$_; if(eof){ for $k (sort keys %hash){ $cmd="tophat2 -o $k"."_tophat2 -p 4 --transcriptome-index=tair10.transcriptome/known tair10.genome @{$hash{$k}}"; print "\nCMD: $cmd\n"; system $cmd } }'
+```
 
+The 6 TopHat2 commands should be:
+```
 CMD: tophat2 -o control_rep1_tophat2 -p 4 --transcriptome-index=tair10.transcriptome/known tair10.genome src/control_rep1_R1.fq.gz src/control_rep1_R2.fq.gz
 
 CMD: tophat2 -o control_rep2_tophat2 -p 4 --transcriptome-index=tair10.transcriptome/known tair10.genome src/control_rep2_R1.fq.gz src/control_rep2_R2.fq.gz
@@ -112,11 +115,6 @@ CMD: tophat2 -o treatment_rep5_tophat2 -p 4 --transcriptome-index=tair10.transcr
 CMD: tophat2 -o treatment_rep7_tophat2 -p 4 --transcriptome-index=tair10.transcriptome/known tair10.genome src/treatment_rep7_R1.fq.gz src/treatment_rep7_R2.fq.gz
 
 CMD: tophat2 -o treatment_rep9_tophat2 -p 4 --transcriptome-index=tair10.transcriptome/known tair10.genome src/treatment_rep9_R1.fq.gz src/treatment_rep9_R2.fq.gz
-```
-
-The commands seem OK. So we add `system $cmd` for actual executing them.
-```
-ls src/*.fq.gz | sort | perl -ne 'chomp; /.+\/(.+)_R\d\./; push @{$hash{$1}},$_; if(eof){ for $k (sort keys %hash){ $cmd="tophat2 -o $k"."_tophat2 -p 4 --transcriptome-index=tair10.transcriptome/known tair10.genome @{$hash{$k}}"; print "\nCMD: $cmd\n"; system $cmd } }'
 ```
 
 Output BAM files would be `*_tophat2/accepted_hits.bam`.
