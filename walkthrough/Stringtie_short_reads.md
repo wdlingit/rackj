@@ -59,7 +59,7 @@ Note that the `ExampleData` folder was bounded as `/mnt` in the container. All n
 
 For Docker and Docker Desktop user:
 1. extract ExampleData.zip and remember the path to the ExampleData folder
-2. (only for Docker Desktop) open _terminal_ (buttom-right corner of Docker Desktop)
+2. (only for Docker Desktop) open _terminal_ (bottom-right corner of Docker Desktop)
 3. run command `docker run -it --rm --mount type=bind,src=<path_to_ExampleData>,dst=/mnt wdlin/rackj`
 4. just remember that the ExampleData folder is bound to `/mnt`
 
