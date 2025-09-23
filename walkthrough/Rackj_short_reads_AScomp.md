@@ -96,7 +96,7 @@ the following perl one-liner can help us to form 12 commands of running BLAT via
 ls src/*.fq.gz | perl -ne 'chomp; /.+\/(.+?)\./; $cmd="gzip -dc $_ > $1.fq; Mapping.pl -split 4 x $1.fq $1.blat.bam MappingBlat.pl -target TAIR10_chr_all.fas -t=dna -q=rna; rm $1.fq"; print "\nCMD: $cmd\n"; system $cmd'
 ```
 
-We list only one of the commands for convenience.
+For convenience, we will keep listing only the first commends in most of this walkthrough.
 ```
 CMD: gzip -dc src/control_rep1_R1.fq.gz > control_rep1_R1.fq; Mapping.pl -split 4 x control_rep1_R1
 .fq control_rep1_R1.blat.bam MappingBlat.pl -target TAIR10_chr_all.fas -t=dna -q=rna; rm control_re
@@ -129,10 +129,13 @@ Singularity> ls -l *.blat.bam
 -rwxrwxrwx+ 1 wdlin R418 20108811 Sep 21 13:57 treatment_rep9_R2.blat.bam
 ```
 
-As they are read alignment files of read1 and read2 separately, the next command would generate 6 commands to merge them and keep the BAM file sorted-by-name. For convenience, we will keep only the first commends in most of this walkthrough.
+As they are read alignment files of read1 and read2 separately, the next command would generate 6 commands to merge them and keep the BAM file sorted-by-name.
 ```
-Singularity> ls *.blat.bam | perl -ne 'chomp; /(.+?)_R\d\./; push @{$hash{$1}},$_; if(eof){ for $key (sort keys %hash){ $cmd="samtools merge -fn /dev/stdout @{$hash{$key}} | samtools view /dev/stdin | SamReverse.pl _1 | samtools view -Sbo $key.merged.bam -T TAIR10_chr_all.fas /dev/stdin"; print "\nCMD: $cmd\n"; system $cmd } }'
+ls *.blat.bam | perl -ne 'chomp; /(.+?)_R\d\./; push @{$hash{$1}},$_; if(eof){ for $key (sort keys %hash){ $cmd="samtools merge -fn /dev/stdout @{$hash{$key}} | samtools view /dev/stdin | SamReverse.pl _1 | samtools view -Sbo $key.merged.bam -T TAIR10_chr_all.fas /dev/stdin"; print "\nCMD: $cmd\n"; system $cmd } }'
+```
 
+Generated commands should be like:
+```
 CMD: samtools merge -fn /dev/stdout control_rep1_R1.blat.bam control_rep1_R2.blat.bam | samtools view /dev/stdin | SamReverse.pl _1 | samtools view -Sbo control_rep1.merged.bam -T TAIR10_chr_all.fas /dev/stdin
 (... deleted)
 ```
@@ -163,23 +166,23 @@ Singularity> ls -l *.merged.bam
 ## 3. Compute basic numbers, separate biological replicates
 
 ```
-ubuntu@vm1755154910250-11235-iaas:~/ExampleData$ ls *.merged.bam | perl -ne 'chomp; /(.+?)\./; push @{$hash{$1}},$_; if(eof){ for $key (sort keys %hash){ $cmd="ASnumbers.pl -model tair10.strand.model tair10.strand.cgff $key @{$hash{$key}} > $key.numbers.log"; print "\nCMD: $cmd\n"; system "$cmd"; } }'
+ls *.merged.bam | perl -ne 'chomp; /(.+?)\./; push @{$hash{$1}},$_; if(eof){ for $key (sort keys %hash){ $cmd="ASnumbers.pl -model tair10.strand.model tair10.strand.cgff $key @{$hash{$key}} > $key.numbers.log"; print "\nCMD: $cmd\n"; system "$cmd"; } }'
 ```
 
 ## 3. Compute basic numbers, merged biological replicates
 
 ```
-ubuntu@vm1755154910250-11235-iaas:~/ExampleData$ ls *.merged.bam | perl -ne 'chomp; /(.+?)_rep/; push @{$hash{$1}},$_; if(eof){ for $key (sort keys %hash){ $cmd="ASnumbers.pl -model tair10.strand.model tair10.strand.cgff $key @{$hash{$key}} > $key.numbers.log"; print "\nCMD: $cmd\n"; system "$cmd"; } }'
+ls *.merged.bam | perl -ne 'chomp; /(.+?)_rep/; push @{$hash{$1}},$_; if(eof){ for $key (sort keys %hash){ $cmd="ASnumbers.pl -model tair10.strand.model tair10.strand.cgff $key @{$hash{$key}} > $key.numbers.log"; print "\nCMD: $cmd\n"; system "$cmd"; } }'
 ```
 
 ## 4. Alternative-splicing event comparison between two merged samples
 
 ```
-ubuntu@vm1755154910250-11235-iaas:~/ExampleData$ AScomp_merged.pl tair10.strand.cgff control treatment
+AScomp_merged.pl tair10.strand.cgff control treatment
 ```
 
 ## 5. Alternative-splicing evnet comparison based on ratios with respects to biological replicates
 
 ```
-ubuntu@vm1755154910250-11235-iaas:~/ExampleData$ AScomp_separate.pl tair10.strand.cgff control:control_rep1,control_rep2,control_rep4 treatment:treatment_rep5,treatment_rep7,treatment_rep9
+AScomp_separate.pl tair10.strand.cgff control:control_rep1,control_rep2,control_rep4 treatment:treatment_rep5,treatment_rep7,treatment_rep9
 ```
