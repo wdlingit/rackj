@@ -131,7 +131,7 @@ Singularity> ls -l *.blat.bam
 -rwxrwxrwx+ 1 wdlin R418 20108811 Sep 21 13:57 treatment_rep9_R2.blat.bam
 ```
 
-As they are read alignment files of read1 and read2 separately, the next command would generate 6 commands to merge them and keep the BAM file sorted-by-name.
+As they are read alignment files of read1 and read2 separately, the next command would generate 6 commands to merge them and keep the BAM file sorted-by-name. For convenience, we will keep only the first commends in most of this walkthrough.
 ```
 Singularity> ls *.blat.bam | perl -ne 'chomp; /(.+?)_R\d\./; push @{$hash{$1}},$_; if(eof){ for $key (sort keys %hash){ $cmd="samtools merge -fn /dev/stdout @{$hash{$key}} | samtools view /dev/stdin | SamReverse.pl _1 | samtools view -Sbo $key.merged.bam -T TAIR10_chr_all.fas /dev/stdin"; print "\nCMD: $cmd\n"; system $cmd } }'
 
@@ -143,7 +143,9 @@ Points to be noticed and parameter explanation:
 2. `samtools view /dev/stdin | SamReverse.pl _1`: In pair-ended RNAseq, read1 and read2 are usually opposite to each other. In this example, our read2 reads are following gene orientation and read1 reads are opposite to the gene orientation. `samtools view /dev/stdin` translates BAM into SAM and `SamReverse.pl _1` reverses directions of read1 alignments. (*)
 3. `samtools view -Sbo`: this last part translates read1-reversed input SAM into BAM.
 
-(*): in case you are using alignment tools that aligns read1 and read2 at the same time (ex: TopHat2 or HISAT2), use `SamReverse.pl -byFlag 64` for reverse read1 directions.
+(*): In case you are using alignment tools that aligns read1 and read2 at the same time (ex: TopHat2 or HISAT2), use `SamReverse.pl -byFlag 64` for reverse read1 directions.
+
+**NOTE**: Many programs of rackj try to pick the most appropriate alignment(s) for one read so BAM files sorted-by-name are required. Most RNAseq-related programs of rackj can count reads for genes with cares of read orientations so making reads following original transcript orientation would improve precision of counting.
 
 Now we have 6 `*.merged.bam` files, each of them corresponds to one sample.
 ```
