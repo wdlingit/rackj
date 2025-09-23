@@ -174,4 +174,12 @@ ubuntu@vm1755154910250-11235-iaas:~/ExampleData$ ls *.merged.bam | perl -ne 'cho
 
 ## 4. Alternative-splicing event comparison between two merged samples
 
+```
+ubuntu@vm1755154910250-11235-iaas:~/ExampleData$ AScomp_merged.pl tair10.strand.cgff control treatment
+```
+
 ## 5. Alternative-splicing evnet comparison based on ratios with respects to biological replicates
+
+```
+ubuntu@vm1755154910250-11235-iaas:~/ExampleData$ AScomp_separate.pl tair10.strand.cgff control:control_rep1,control_rep2,control_rep4 treatment:treatment_rep5,treatment_rep7,treatment_rep9
+```
