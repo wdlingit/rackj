@@ -4,7 +4,7 @@ This page will go through the following items using short read pair-ended datase
 1. alternative-splicing event comparison between two merged samples
 2. alternative-splicing evnet comparison based on ratios with respects to biological replicates
 
-We will use ExampleData.zip and the [docker image](https://hub.docker.com/r/wdlin/rackj) for all the programs. In this walkthrough, we will use Singularity to run the docker image. Usage example:
+We will use [ExampleData.zip](https://data.depositar.io/en/dataset/75d0309f-5700-489a-afc0-85591aa3d7d3/resource/cb55dc2b-293a-4115-b6a7-5abca091d021/download/ExampleData.zip) and the [docker image](https://hub.docker.com/r/wdlin/rackj) for all the programs. In this walkthrough, we will use Singularity to run the docker image. Usage example:
 
 ```
 wdlin@comp10:/RAID2/R418/20250930_AS$ unzip ExampleData.zip
