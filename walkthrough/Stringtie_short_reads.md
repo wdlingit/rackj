@@ -7,7 +7,7 @@ This page will go through the following items using short read pair-ended datase
 2. isoform expression level comparison
 3. isofrom ratio (isoform against gene) comparison
 
-We will use [ExampleData.zip](https://data.depositar.io/en/dataset/75d0309f-5700-489a-afc0-85591aa3d7d3/resource/cb55dc2b-293a-4115-b6a7-5abca091d021/download/ExampleData.zip) and the [docker image](https://hub.docker.com/r/wdlin/rackj) for all the programs. In this walkthrough, we will use Singularity to run the docker image. Usage example:
+We will use [ExampleData.zip](https://data.depositar.io/en/dataset/exampledata-zip-20250930) and the [docker image](https://hub.docker.com/r/wdlin/rackj) for all the programs. In this walkthrough, we will use Singularity to run the docker image. Usage example:
 
 ```
 wdlin@comp10:/RAID2/R418/20250930_AS$ curl -O https://data.depositar.io/en/dataset/75d0309f-5700-489a-afc0-85591aa3d7d3/resource/cb55dc2b-293a-4115-b6a7-5abca091d021/download/ExampleData.zip
