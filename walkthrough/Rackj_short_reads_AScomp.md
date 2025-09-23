@@ -163,25 +163,45 @@ Singularity> ls -l *.merged.bam
 
 **This is an optional step**, you may adopt `tair10.strand.cgff` and `tair10.strand.model` in ExampleData.zip directly. 
 
-## 3. Compute basic numbers, separate biological replicates
-
-```
-ls *.merged.bam | perl -ne 'chomp; /(.+?)\./; push @{$hash{$1}},$_; if(eof){ for $key (sort keys %hash){ $cmd="ASnumbers.pl -model tair10.strand.model tair10.strand.cgff $key @{$hash{$key}} > $key.numbers.log"; print "\nCMD: $cmd\n"; system "$cmd"; } }'
-```
-
 ## 3. Compute basic numbers, merged biological replicates
 
 ```
 ls *.merged.bam | perl -ne 'chomp; /(.+?)_rep/; push @{$hash{$1}},$_; if(eof){ for $key (sort keys %hash){ $cmd="ASnumbers.pl -model tair10.strand.model tair10.strand.cgff $key @{$hash{$key}} > $key.numbers.log"; print "\nCMD: $cmd\n"; system "$cmd"; } }'
 ```
 
-## 4. Alternative-splicing event comparison between two merged samples
+```
+CMD: ASnumbers.pl -model tair10.strand.model tair10.strand.cgff control control_rep1.merged.bam control_rep2.merged.bam control_rep4.merged.bam > control.numbers.log
+
+CMD: ASnumbers.pl -model tair10.strand.model tair10.strand.cgff treatment treatment_rep5.merged.bam treatment_rep7.merged.bam treatment_rep9.merged.bam > treatment.numbers.log
+```
+
+## 4. Compute basic numbers, separate biological replicates
+
+```
+ls *.merged.bam | perl -ne 'chomp; /(.+?)\./; push @{$hash{$1}},$_; if(eof){ for $key (sort keys %hash){ $cmd="ASnumbers.pl -model tair10.strand.model tair10.strand.cgff $key @{$hash{$key}} > $key.numbers.log"; print "\nCMD: $cmd\n"; system "$cmd"; } }'
+```
+
+```
+CMD: ASnumbers.pl -model tair10.strand.model tair10.strand.cgff control_rep1 control_rep1.merged.bam > control_rep1.numbers.log
+
+CMD: ASnumbers.pl -model tair10.strand.model tair10.strand.cgff control_rep2 control_rep2.merged.bam > control_rep2.numbers.log
+
+CMD: ASnumbers.pl -model tair10.strand.model tair10.strand.cgff control_rep4 control_rep4.merged.bam > control_rep4.numbers.log
+
+CMD: ASnumbers.pl -model tair10.strand.model tair10.strand.cgff treatment_rep5 treatment_rep5.merged.bam > treatment_rep5.numbers.log
+
+CMD: ASnumbers.pl -model tair10.strand.model tair10.strand.cgff treatment_rep7 treatment_rep7.merged.bam > treatment_rep7.numbers.log
+
+CMD: ASnumbers.pl -model tair10.strand.model tair10.strand.cgff treatment_rep9 treatment_rep9.merged.bam > treatment_rep9.numbers.log
+```
+
+## 5. Alternative-splicing event comparison between two merged samples
 
 ```
 AScomp_merged.pl tair10.strand.cgff control treatment
 ```
 
-## 5. Alternative-splicing evnet comparison based on ratios with respects to biological replicates
+## 6. Alternative-splicing evnet comparison based on ratios with respects to biological replicates
 
 ```
 AScomp_separate.pl tair10.strand.cgff control:control_rep1,control_rep2,control_rep4 treatment:treatment_rep5,treatment_rep7,treatment_rep9
