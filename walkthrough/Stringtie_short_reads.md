@@ -302,9 +302,14 @@ Chr1    StringTie       transcript      23416   31227   1000    +       .       
 Chr1    StringTie       transcript      28500   28707   1000    +       .       gene_id "MSTRG.4"; transcript_id "AT1G01046.1"; ref_gene_id "AT1G01046";
 Chr1    StringTie       transcript      31170   33153   1000    -       .       gene_id "MSTRG.5"; transcript_id "AT1G01050.1"; ref_gene_id "AT1G01050";
 Chr1    StringTie       transcript      38752   40944   1000    -       .       gene_id "MSTRG.6"; transcript_id "AT1G01070.2"; ref_gene_id "AT1G01070";
+```
 
-Singularity> cat merged.gtf | perl -ne 'chomp; @t=split(/\t/); next if $t[2] ne "transcript"; ($trans)=$t[8]=~/transcript_id "(.+?)"/; print "$trans\t$1\n" if $t[8]=~/^gene_id "(.+?)"/; print "$trans\t$1\n" if $t[8]=~/ref_gene_id "(.+?)"/' | sort | uniq > TransGeneTable.tsv
+This command should help us to extract the table from `merged.gtf`.
+```
+cat merged.gtf | perl -ne 'chomp; @t=split(/\t/); next if $t[2] ne "transcript"; ($trans)=$t[8]=~/transcript_id "(.+?)"/; print "$trans\t$1\n" if $t[8]=~/^gene_id "(.+?)"/; print "$trans\t$1\n" if $t[8]=~/ref_gene_id "(.+?)"/' | sort | uniq > TransGeneTable.tsv
+```
 
+```
 Singularity> head TransGeneTable.tsv
 AT1G01010.1     AT1G01010
 AT1G01010.1     MSTRG.1
