@@ -64,7 +64,7 @@ The maximum memory usage is about 2GB for this workthrough so it seems not neede
 
 ## 1. Mapping using BLAT
 
-**This is an optional step**, you may adopt `*.merged.bam` in ExampleData.zip directly. 
+**This is an optional step**. You may adopt `*.merged.bam` in ExampleData.zip directly. 
 
 In case that we are going to map reads, existing BAM files are no longer needed.
 ```
@@ -161,7 +161,7 @@ Singularity> ls -l *.merged.bam
 
 ## 2. Extract gene-exon coordinates
 
-**This is an optional step**, you may adopt `tair10.strand.cgff` and `tair10.strand.model` in ExampleData.zip directly. 
+**This is an optional step**. You may adopt `tair10.strand.cgff` and `tair10.strand.model` in ExampleData.zip directly. 
 
 ## 3. Compute basic numbers, merged biological replicates
 
