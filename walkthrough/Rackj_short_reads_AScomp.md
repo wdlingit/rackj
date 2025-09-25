@@ -161,7 +161,70 @@ Singularity> ls -l *.merged.bam
 
 ## 2. Extract gene-exon coordinates
 
-**This is an optional step**. You may adopt `tair10.strand.cgff` and `tair10.strand.model` in ExampleData.zip directly. 
+**This is an optional step**. You may adopt `tair10.strand.cgff` and `tair10.strand.model` in ExampleData.zip directly.
+
+Our first step here is to observe the feature hierarchy inside the genome annotation GFF3 file `TAIR10_GFF3_genes_transposons.gff`.
+```
+java misc.GffTree -I TAIR10_GFF3_genes_transposons.gff
+```
+
+This command asks `misc.GffTree` to parse `TAIR10_GFF3_genes_transposons.gff` and generate a `.features` file.
+```
+Singularity> cat TAIR10_GFF3_genes_transposons.gff.features
+GffRoot
+  chromosome*
+  gene*
+    mRNA*
+      protein*
+        CDS
+      exon
+      five_prime_UTR
+      CDS
+      three_prime_UTR
+    miRNA*
+      exon
+    tRNA*
+      exon
+    ncRNA*
+      exon
+    snoRNA*
+      exon
+    snRNA*
+      exon
+    rRNA*
+      exon
+  pseudogene*
+    pseudogenic_transcript*
+      pseudogenic_exon
+  transposable_element_gene*
+    mRNA*
+      exon
+  transposable_element*
+    transposon_fragment
+    transposable_element_gene*
+      mRNA*
+        exon
+```
+
+According to our understanding, a gene locus can have a number of mRNA models (transcripts) and a model is defined by a number of exons. This is why we see mRNA under gene and exon (and some other features) under mRNA in the feature hierarchy. We know an RNA-level feature's sequence composition if we know its exon-level features sequences. Accordingly identifying all relationships like gene-mRNA-exon that would be involved in transcription should help our RNAseq study because these relationships can help us to know coordinates of genes and mRNAs and we can count their reads from the BAM files in the last session. The following command helps us to extract all thos coordinates.
+```
+java misc.ModelCGFF -GFF3 TAIR10_GFF3_genes_transposons.gff -GRE gene mRNA:miRNA:tRNA:ncRNA:snoRNA:snRNA:rRNA exon -GRE pseudogene pseudogenic_transcript pseudogenic_exon -GRE transposable_element_gene mRNA exon -O tair10.strand
+```
+This command's screen output should be:
+```
+ID attribute (-idAttr) not assigned, using default: ID
+parent attribute list (-parentAttr) not assigned, using default: [Parent, Derives_from]
+program: ModelCGFF
+GFF3 filename (-GFF3): TAIR10_GFF3_genes_transposons.gff
+ID attribute (-idAttr): ID
+parent attribute list (-parentAttr)): [Parent, Derives_from]
+gene-rna-exon feature triples (-GRE): [[gene, mRNA:miRNA:tRNA:ncRNA:snoRNA:snRNA:rRNA, exon], [pseudogene, pseudogenic_transcript, pseudogenic_exon], [transposable_element_gene, mRNA, exon]]
+intron preserving merged model (-IP)): false
+representative list (-rep): null
+output prefix (-O): tair10.strand
+```
+
+The above `misc.ModelCGFF` command means, we considered (i) `gene` `pseudogene` and `transposable_element_gene` as gene-level features, (ii) `mRNA` `miRNA` `tRNA` `ncRNA` `snoRNA` `snRNA` `rRNA` as RNA-level features under `gene`, (iii) `pseudogenic_transcript` as an RNA feature under `pseudogene`, 
 
 ## 3. Compute basic numbers, merged biological replicates
 
