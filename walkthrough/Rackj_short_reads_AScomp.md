@@ -168,7 +168,7 @@ Our first step here is to observe the feature hierarchy inside the genome annota
 java misc.GffTree -I TAIR10_GFF3_genes_transposons.gff
 ```
 
-This command asks `misc.GffTree` to parse `TAIR10_GFF3_genes_transposons.gff` and generate a `.features` file.
+The above command asks `misc.GffTree` to parse `TAIR10_GFF3_genes_transposons.gff` and generate a `.features` file.
 ```
 Singularity> cat TAIR10_GFF3_genes_transposons.gff.features
 GffRoot
@@ -206,10 +206,11 @@ GffRoot
         exon
 ```
 
-According to our understanding, a gene locus can have a number of mRNA models (transcripts) and a model is defined by a number of exons. This is why we see mRNA under gene and exon (and some other features) under mRNA in the feature hierarchy. We know an RNA-level feature's sequence composition if we know its exon-level features sequences. Accordingly identifying all relationships like gene-mRNA-exon that would be involved in transcription should help our RNAseq study because these relationships can help us to know coordinates of genes and mRNAs and we can count their reads from the BAM files in the last session. The following command helps us to extract all thos coordinates.
+According to our understanding, a gene locus can have a number of mRNA models (transcripts) and a model is defined by a number of exons. This is why we see mRNA under gene and exon (and some other features) under mRNA in the feature hierarchy. We know an RNA-level feature's sequence composition if we know its exon-level features sequences. Accordingly identifying all relationships like gene-mRNA-exon that would be involved in transcription should help our RNAseq study because these relationships can help us to know coordinates of genes and transcripts and we can count their reads from the BAM files in the last session. The following command helps us to extract all those coordinates.
 ```
 java misc.ModelCGFF -GFF3 TAIR10_GFF3_genes_transposons.gff -GRE gene mRNA:miRNA:tRNA:ncRNA:snoRNA:snRNA:rRNA exon -GRE pseudogene pseudogenic_transcript pseudogenic_exon -GRE transposable_element_gene mRNA exon -O tair10.strand
 ```
+
 This command's screen output should be:
 ```
 ID attribute (-idAttr) not assigned, using default: ID
@@ -224,7 +225,48 @@ representative list (-rep): null
 output prefix (-O): tair10.strand
 ```
 
-The above `misc.ModelCGFF` command means, we considered (i) `gene` `pseudogene` and `transposable_element_gene` as gene-level features, (ii) `mRNA` `miRNA` `tRNA` `ncRNA` `snoRNA` `snRNA` `rRNA` as RNA-level features under `gene`, (iii) `pseudogenic_transcript` as an RNA feature under `pseudogene`, 
+The above `misc.ModelCGFF` command means: (i) we collect all `exon` coordinates for `mRNA` `miRNA` `tRNA` `ncRNA` `snoRNA` `snRNA` `rRNA` and collect all `exon` coordinates of these `mRNA` `miRNA` `tRNA` `ncRNA` `snoRNA` `snRNA` `rRNA` for their genes (ii) we collect `pseudogenic_exon` coordinates for `pseudogenic_transcript` and collect `exon` coordinates of `pseudogenic_transcript` for `pseudogene`, and (iii) we also collect `exon` coordinates for `mRNA` belonging to `transposable_element_gene` and `transposable_element_gene`. The output would be two files, one for transcripts' exon coordinates and the other for genes' exon coordinates. The two filenames would be prefixed by `tair10.strand` and suffixed by `.model` and `.cgff`, respectively.
+
+Here are one short example of `AT1G01020`.
+```
+Singularity> head -27 tair10.strand.model | tail -n 20
+>AT1G01020.1    Chr1    5928    8737    -       AT1G01020
+5928    6263
+6437    7069
+7157    7232
+7384    7450
+7564    7649
+7762    7835
+7942    7987
+8236    8325
+8417    8464
+8571    8737
+>AT1G01020.2    Chr1    6790    8737    -       AT1G01020
+6790    7069
+7157    7450
+7564    7649
+7762    7835
+7942    7987
+8236    8325
+8417    8464
+8571    8737
+
+Singularity> head -17 tair10.strand.cgff | tail -n 10
+>AT1G01020      Chr1    5928    8737    -
+5928    6263
+6437    7069
+7157    7450
+7564    7649
+7762    7835
+7942    7987
+8236    8325
+8417    8464
+8571    8737
+```
+
+The above example shows that `gene` `AT1G01020` has two `transcripts` `AT1G01020.1` and `AT1G01020.2`. In `tair10.strand.model` we can see exon coordinates of the two transcripts. We can also see that the exon coordinates of `gene` `AT1G01020` is a _merge_ of exon coordinates of its two transcripts: `[5928, 6263]` absent in `AT1G01020.2` and `[7157, 7450]` is absent in `AT1G01020.1` (which covers `[7157, 7232]` and `[7384, 7450]`).
+
+**NOTE**: In practice, we usually set option `-IP` to `true` for program `misc.ModelCGFF` to preserve intron information in gene's exon coordinates.
 
 ## 3. Compute basic numbers, merged biological replicates
 
