@@ -338,7 +338,7 @@ This file contains five columns:
 |:-------|-------------:|-------:|-----:|----------:|
 | AT1G01080 | 1.322 | 20.0 | 30.43 | 0.0 |
 
-!(RPKM_1.png)
+![RPKM example 1](pic/RPKM_1.png)
 
 ### `.spliceCount`
 ### `.fineSplice`
