@@ -104,8 +104,8 @@ CMD: gzip -dc src/control_rep1_R1.fq.gz > control_rep1_R1.fq; Mapping.pl -split 
 (... deleted)
 ```
 Points to be noticed and parameter explanation:
-1. BLAT accepts plain text FASTA files so we have `gzip -dc src/control_rep1_R1.fq.gz > control_rep1_R1.fq` and `rm control_rep1_R1.fq` at the beginning and at the end.
-2. `-split 4` asks `Mapping.pl` to split the read file into 4 share and executes 4 `MappingBlat.pl` for them, respectively. Note that BLAT would build a lookup table of the genome in memory, this costs some memroy.
+1. BLAT accepts plain text FASTA files so we have `gzip -dc src/control_rep1_R1.fq.gz > control_rep1_R1.fq` and `rm control_rep1_R1.fq` at the beginning and the end, respectively.
+2. `-split 4` asks `Mapping.pl` to split the read file into 4 shares and executes 4 `MappingBlat.pl` for them, respectively. Note that BLAT would build a lookup table of the genome in memory, this costs some memroy.
 3. `x`: a dummy parameter, please keep it.
 4. `control_rep1_R1.fq`: the read file.
 5. `control_rep1_R1.blat.bam`: output BAM file, it would be sorted-by-name.
@@ -129,7 +129,7 @@ Singularity> ls -l *.blat.bam
 -rwxrwxrwx+ 1 wdlin R418 20108811 Sep 21 13:57 treatment_rep9_R2.blat.bam
 ```
 
-As they are read alignment files of read1 and read2 separately, the next command would generate 6 commands to merge them and keep the BAM file sorted-by-name.
+As they are read alignment files of read1 and read2 separately for each of the samples, the next command would generate 6 commands to merge them and keep the BAM file sorted-by-name.
 ```
 ls *.blat.bam | perl -ne 'chomp; /(.+?)_R\d\./; push @{$hash{$1}},$_; if(eof){ for $key (sort keys %hash){ $cmd="samtools merge -fn /dev/stdout @{$hash{$key}} | samtools view /dev/stdin | SamReverse.pl _1 | samtools view -Sbo $key.merged.bam -T TAIR10_chr_all.fas /dev/stdin"; print "\nCMD: $cmd\n"; system $cmd } }'
 ```
@@ -168,7 +168,7 @@ Our first step here is to observe the feature hierarchy inside the genome annota
 java misc.GffTree -I TAIR10_GFF3_genes_transposons.gff
 ```
 
-The above command asks `misc.GffTree` to parse `TAIR10_GFF3_genes_transposons.gff` and generate a `.features` file. Please note that we applied some strict rules on parsing GFF3 files. Please refer [here](https://github.com/wdlingit/gff3fixes) for a few examples of fixing GFF3 files, or consider raising an issue for an unparsable GFF3 file.
+The above command asks `misc.GffTree` to parse `TAIR10_GFF3_genes_transposons.gff` and generate a `.features` file. Please note that we applied some strict rules on parsing GFF3 files so the program may report some issues for other GFF3 files. Please refer [here](https://github.com/wdlingit/gff3fixes) for a few examples of fixing GFF3 files, or consider raising an issue for an unparsable GFF3 file.
 ```
 Singularity> cat TAIR10_GFF3_genes_transposons.gff.features
 GffRoot
@@ -225,7 +225,7 @@ representative list (-rep): null
 output prefix (-O): tair10.strand
 ```
 
-The above `misc.ModelCGFF` command means: (i) we collect all `exon` coordinates for `mRNA` `miRNA` `tRNA` `ncRNA` `snoRNA` `snRNA` `rRNA` and collect all `exon` coordinates of these `mRNA` `miRNA` `tRNA` `ncRNA` `snoRNA` `snRNA` `rRNA` for their genes (ii) we collect `pseudogenic_exon` coordinates for `pseudogenic_transcript` and collect `pseudogenic_exon` coordinates of `pseudogenic_transcript` for `pseudogene`, and (iii) we also collect `exon` coordinates for `mRNA` belonging to `transposable_element_gene` and `transposable_element_gene`. The output would be two files, one for transcripts' exon coordinates and the other for genes' exon coordinates. The two filenames would be prefixed by `tair10.strand` and suffixed by `.model` and `.cgff`, respectively.
+The above `misc.ModelCGFF` command means: (i) collect all `exon` coordinates for `mRNA` `miRNA` `tRNA` `ncRNA` `snoRNA` `snRNA` `rRNA` and collect all `exon` coordinates of these `mRNA` `miRNA` `tRNA` `ncRNA` `snoRNA` `snRNA` `rRNA` for their genes (ii) collect `pseudogenic_exon` coordinates for `pseudogenic_transcript` and collect `pseudogenic_exon` coordinates of `pseudogenic_transcript` for `pseudogene`, and (iii) collect `exon` coordinates for `mRNA` belonging to `transposable_element_gene` and `transposable_element_gene`. The output coordinates would be two files, one for transcripts' exon coordinates and the other for genes' exon coordinates. The two filenames would be prefixed by `tair10.strand` and suffixed by `.model` and `.cgff`, respectively.
 
 Here are one short example of `AT1G01020`.
 ```
@@ -270,24 +270,37 @@ The above output shows that `gene` `AT1G01020` has two `transcripts` `AT1G01020.
 
 ## 3. Compute basic numbers
 
+From the last two sections, we have BAM files storing reads mapping to where of the genome and coordinate files storing where genes and transcripts located in the genome. Together them we can compute various kind of numbers of reads for genes and transcripts. The next perl one-liner generates 6 commands that use `ASnumbers.pl` to generate many kinds of numbers for the alternative-splicing computation for the 6 samples.
 ```
 ls *.merged.bam | perl -ne 'chomp; /(.+?)\./; push @{$hash{$1}},$_; if(eof){ for $key (sort keys %hash){ $cmd="ASnumbers.pl -model tair10.strand.model tair10.strand.cgff $key @{$hash{$key}} > $key.numbers.log"; print "\nCMD: $cmd\n"; system "$cmd"; } }'
 ```
-
 ```
 CMD: ASnumbers.pl -model tair10.strand.model tair10.strand.cgff control_rep1 control_rep1.merged.bam > control_rep1.numbers.log
 (deleted...)
 ```
+Points to be noticed and parameter explanation:
+1. option `-model tair10.strand.model` is provided for the alternative donor-acceptor computation. It can be omitted.
+2. the first parameter `tair10.strand.cgff` is requried for exon coordinates of genes.
+3. the second parameter (ex: `control_rep1`) is for the prefix of output files.
+4. rest parameters shoudl be BAM files.
 
+In addition to compupte all the numbers for 6 samples sepearately, we compute the same numbers for the two merged sample. The following perl one-liner merges the three replicates for each of the sample and generates a corresponding `ASnumbers.pl` command.
 ```
 ls *.merged.bam | perl -ne 'chomp; /(.+?)_rep/; push @{$hash{$1}},$_; if(eof){ for $key (sort keys %hash){ $cmd="ASnumbers.pl -model tair10.strand.model tair10.strand.cgff $key @{$hash{$key}} > $key.numbers.log"; print "\nCMD: $cmd\n"; system "$cmd"; } }'
 ```
 
+The two generated commands should be:
 ```
 CMD: ASnumbers.pl -model tair10.strand.model tair10.strand.cgff control control_rep1.merged.bam control_rep2.merged.bam control_rep4.merged.bam > control.numbers.log
 
 CMD: ASnumbers.pl -model tair10.strand.model tair10.strand.cgff treatment treatment_rep5.merged.bam treatment_rep7.merged.bam treatment_rep9.merged.bam > treatment.numbers.log
 ```
+
+Files to be described:
+1. .geneRPKM
+2. .spliceCount
+3. .fineSplice
+4. .intronCount/.exonCount
 
 ## 5. Alternative-splicing event comparison between two merged samples
 
