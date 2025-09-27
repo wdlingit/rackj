@@ -341,17 +341,20 @@ A example is `AT1G01080` of sample control_rep1. In file `control_rep1.geneRPKM`
 | AT1G01080 | 1.322 | 20.0 | 30.43 | 0.0 |
 
 In the IGV interface, we can see there are exactly 20 reads. According to column 5, multi-read ratio is 0 so we know all 20 reads are uniq-reads.
+
 ![RPKM example 1](pic/RPKM_1.png)
 
 ### `.spliceCount`
 
 This file contains six columns:
 1. GeneID: gene ID
-2. exonPair: exon pair, in the form of _a<=>b_
+2. exonPair: exon pair, in the form of _a<=>b_ (*)
 3. #reads: number of reads supporting this splicing event
 4. jumping: is there any other exon between a and b?
 5. novel: is this splicing event novel? (this column is added if `-model` specified)
 6. splicingPosFreq: splicing position fequency of reads
+
+*: In our framework, all exons and introns are numbered following chromosome orientation.
 
 A example is `AT1G03910` exon pair `7<=>9`. In file `control_rep1.spliceCount` it was found that
 
@@ -360,9 +363,30 @@ A example is `AT1G03910` exon pair `7<=>9`. In file `control_rep1.spliceCount` i
 | AT1G03910 | 7<=>9 | 2.0 | V | | {45=1, 70=1} |
 
 In the IGV interface, we can see there are exactly 2 spliced reads with the first part at exon 7 and the second part at exon 9, where exon 8 was skipped. As the gene model `AT1G03910.1` is agreeing with this exon skipping, this exon skipping is not novel.
+
 ![splice example 1](pic/splice_1.png)
 
 ### `.fineSplice`
+
+This file contains six columns:
+1. GeneID: gene ID
+2. splice: splicing pattern (*)
+3. #reads: number of reads supporting this splicing event
+4. novel: is this splicing event novel? (this column is added if `-model` specified)
+5. splicingPosFreq: splicing position fequency of reads
+
+*: We have a system of noting splicing junction with respect to saving information related to gene exons. Please refer [here](https://rackj.sourceforge.net/Manual/index.html#rnaseq.FineSpliceCounter) if needed.
+
+A example is `AT1G01650` spliceing pattern `10(-11)-11(0)`. In short, the splicing pattern is saying 11bps at the exon 10 end was spliced (or not been sequenced). In file `control_rep1.fineSplice` it was found that
+
+| GeneID | splice | #reads | novel | splicingPosFreq |
+|:-------|:------:|-------:|:-----:|:----------------|
+| AT1G01650 | 10(-11)-11(0) | 1.0 | V | {113=1} |
+
+In the IGV interface, we can see there is one spliced read spanning exons 10 and 11 with 11bp-lack at the exon 10 end. As there is no existing gene model agreeing with this splicing junction, this splicing junction was marked novel.
+
+![finesplice example 1](pic/splice_1.png)
+
 ### `.depth.intronCount` and `.depth.exonCount`
 
 | Column 1 | Column 2 | Column 3 |
