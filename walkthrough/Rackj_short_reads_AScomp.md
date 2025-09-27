@@ -334,13 +334,34 @@ This file contains five columns:
 
 *: Computed following the description in Mortazavi A, et al. Nat Methods. 2008. (PMID: 18516045). Seperate every multi-read to mapped genes according to gene expression levels inferred by uniq-reads.
 
+A example is `AT1G01080` of sample control_rep1. In file `control_rep1.geneRPKM` it was found that
+
 | GeneID | Length(Kbps) | #Reads | RPKM | multi/ALL |
 |:-------|-------------:|-------:|-----:|----------:|
 | AT1G01080 | 1.322 | 20.0 | 30.43 | 0.0 |
 
+In the IGV interface, we can see there are exactly 20 reads. According to column 5, multi-read ratio is 0 so we know all 20 reads are uniq-reads.
 ![RPKM example 1](pic/RPKM_1.png)
 
 ### `.spliceCount`
+
+This file contains six columns:
+1. GeneID: gene ID
+2. exonPair: exon pair, in the form of _a<=>b_
+3. #reads: number of reads supporting this splicing event
+4. jumping: is there any other exon between a and b?
+5. novel: is this splicing event novel? (this column is added if `-model` specified)
+6. splicingPosFreq: splicing position fequency of reads
+
+A example is `AT1G03910` exon pair `7<=>9`. In file `control_rep1.spliceCount` it was found that
+
+| GeneID | exonPair | #reads | jumping | novel | splicingPosFreq |
+|:-------|:--------:|-------:|:-------:|:-----:|:----------------|
+| AT1G03910 | 7<=>9 | 2.0 | V | | {45=1, 70=1} |
+
+In the IGV interface, we can see there are exactly 2 spliced reads with the first part at exon 7 and the second part at exon 9, where exon 8 was skipped. As the gene model `AT1G03910.1` is agreeing with this exon skipping, this exon skipping is not novel.
+![splice example 1](pic/splice_1.png)
+
 ### `.fineSplice`
 ### `.depth.intronCount` and `.depth.exonCount`
 
