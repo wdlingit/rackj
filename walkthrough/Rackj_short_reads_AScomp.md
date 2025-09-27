@@ -385,7 +385,7 @@ A example is `AT1G01650` spliceing pattern `10(-11)-11(0)`. In short, the splici
 
 In the IGV interface, we can see there is one spliced read spanning exons 10 and 11 with 11bp-lack at the exon 10 end. As there is no existing gene model agreeing with this splicing junction, this splicing junction was marked novel.
 
-![finesplice example 1](pic/splice_1.png)
+![finesplice example 1](pic/finesplice_1.png)
 
 ### `.depth.intronCount` and `.depth.exonCount`
 
