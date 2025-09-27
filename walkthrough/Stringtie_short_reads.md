@@ -420,7 +420,7 @@ Using a separatesheet program like Excel, the following criteria should help us 
 
 An example that can be easily confirmed is `MSTRG.13875.2`, a novel isoform of AT4G34150. Its `P.Value` is `0.0013` (`adj.P.Val` `0.27`). Its expression ratio is down-regulated (`logFC` `-4.2`). The major difference from `MSTRG.13875.2` to other isoforms is that the long intron in center of the gene is retained. We can see that there are reads located in the intron in the three control samples but no such reads in the three treatment samples.
 
-![MSTRG.13875.2](MSTRG.13875.2.png)
+![MSTRG.13875.2](src/MSTRG.13875.2.png)
 
 ## 6. Visualization of read alignments and the gudided assembly
 
