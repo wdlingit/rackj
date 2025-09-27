@@ -389,10 +389,13 @@ In the IGV interface, we can see there is one spliced read spanning exons 10 and
 
 ### `.depth.intronCount` and `.depth.exonCount`
 
-| Column 1 | Column 2 | Column 3 |
-|----------|----------|----------|
-| Row 1    | Data     | More     |
-| Row 2    | Info     | Stuff    |
+This two files are in the same format, one for read depths of introns, and the other for read depths of exons. Be sure to know that all the numbering are following chromosome orientation:
+1. GeneID: gene ID
+2. intronNo/exonNo: intron/exon number
+3. depth: average read depth of every base-pair of the intron/exon
+4. intronLen/exonLen: length of the intron/exon
+5. multi/ALL: a compatibility column with non-depth `.intronCount` and `.exonCount` files. Should be all 0's here.
+6. coveredRatio: the fraction that the intron/exon been covered by at least one read
 
 ## 5. Alternative-splicing event comparison between two merged samples
 
