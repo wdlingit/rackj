@@ -296,11 +296,19 @@ CMD: ASnumbers.pl -model tair10.strand.model tair10.strand.cgff control control_
 CMD: ASnumbers.pl -model tair10.strand.model tair10.strand.cgff treatment treatment_rep5.merged.bam treatment_rep7.merged.bam treatment_rep9.merged.bam > treatment.numbers.log
 ```
 
-Files to be described:
-1. .geneRPKM
-2. .spliceCount
-3. .fineSplice
-4. .intronCount/.exonCount
+Rest part of this section describes files been used for the alternative-splicing comparisons.
+
+### `.geneRPKM`
+
+
+### `.spliceCount`
+### `.fineSplice`
+### `.depth.intronCount` and `.depth.exonCount`
+
+| Column 1 | Column 2 | Column 3 |
+|----------|----------|----------|
+| Row 1    | Data     | More     |
+| Row 2    | Info     | Stuff    |
 
 ## 5. Alternative-splicing event comparison between two merged samples
 
