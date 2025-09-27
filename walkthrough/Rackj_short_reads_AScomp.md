@@ -325,6 +325,20 @@ Rest part of this section describes files been used for the alternative-splicing
 
 ### `.geneRPKM`
 
+This file contains five columns:
+1. GeneID: gene ID
+2. Length(Kbps): gene length in Kbps
+3. #Reads: number of mapped reads, including fractions of multi-reads (*)
+4. RPKM: within sample normalized RPKM value (*)
+5. multi/ALL: ratio of multi-reads versus all reads
+
+*: Computed following the description in Mortazavi A, et al. Nat Methods. 2008. (PMID: 18516045). Seperate every multi-read to mapped genes according to gene expression levels inferred by uniq-reads.
+
+| GeneID | Length(Kbps) | #Reads | RPKM | multi/ALL |
+|:-------|-------------:|-------:|-----:|----------:|
+| AT1G01080 | 1.322 | 20.0 | 30.43 | 0.0 |
+
+!(RPKM_1.png)
 
 ### `.spliceCount`
 ### `.fineSplice`
