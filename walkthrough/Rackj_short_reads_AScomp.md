@@ -159,7 +159,32 @@ Singularity> ls -l *.merged.bam
 -rwxrwxrwx+ 1 wdlin R418 37492552 Sep 21 14:41 treatment_rep9.merged.bam
 ```
 
-## 2. Extract gene-exon coordinates
+## 2. Visualization of read alignments and the gudided assembly
+
+**This is an optional step**.
+
+Since `*.merged.bam` files are sorted-by-name. We need to sort them by position and build indexes if we like to visualize read alignments to the genome. The following perl one-liner generates 6 commands for sorting the BAM files.
+```
+ls *.merged.bam | perl -ne 'chomp; /(.+?)\./; $cmd="samtools sort -o $1.sorted.bam $_"; print "\nCMD: $cmd\n"; system $cmd'
+```
+
+Generated commands would be like this:
+```
+CMD: samtools sort -o control_rep1.sorted.bam control_rep1.merged.bam
+(deleted...)
+```
+
+The next perl one-liner generates commands for building indexes.
+```
+Singularity> ls *.sorted.bam | perl -ne 'chomp; $cmd="samtools index $_"; print "$cmd\n"; system $cmd'
+```
+
+With files `TAIR10_chr_all.fas`, `TAIR10_GFF3_genes_transposons.gff`, `*.sorted.bam`, and `*.sorted.bam.bai` available in a desktop computer, we can get read alignment visualization with the genome annotation by the following steps:
+1. From IGV menu, Genomes -> Load Genome from File, pick `TAIR10_chr_all.fas`. This should load chromosome sequences.
+2. File -> Load from File, pick `TAIR10_GFF3_genes_transposons.gff`. This should load the genome annotation made by the guided assembly.
+3. File -> Load from File, pick `*.sorted.bam`. This should load read alignment files of the 6 samples.
+
+## 3. Extract gene-exon coordinates
 
 **This is an optional step**. You may adopt `tair10.strand.cgff` and `tair10.strand.model` in ExampleData.zip directly.
 
@@ -268,7 +293,7 @@ The above output shows that `gene` `AT1G01020` has two `transcripts` `AT1G01020.
 
 **NOTE**: In practice, we usually set option `-IP` to `true` for program `misc.ModelCGFF` to preserve intron information in genes' _merged_ exon coordinates.
 
-## 3. Compute basic numbers
+## 4. Compute basic numbers
 
 From the last two sections, we have BAM files storing reads mapping to where of the genome and coordinate files storing where genes and transcripts located in the genome. Together them we can compute various kind of numbers of reads for genes and transcripts. The next perl one-liner generates 6 commands that use `ASnumbers.pl` to generate many kinds of numbers for the alternative-splicing computation for the 6 samples.
 ```
