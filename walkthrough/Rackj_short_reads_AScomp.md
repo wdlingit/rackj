@@ -492,7 +492,7 @@ Suggested filtering criteria:
 
 ### Donor-acceptor: SSDAm_control-treatment.xls
 
-SSDAm files:
+Column meanings:
 A. Gene ID
 B/C. the splicing pattern (splice1) / is this splicing pattern in database
 D/E. the splicing pattern that is most deviated from splice1 (splice2) / is this splicing pattern in database
@@ -505,27 +505,24 @@ O/P. numbers of uniq-reads of the gene in the two samples
 Q. Fisher exact test P-value of G/H/O/P
 R/S. fold-change (comparing splice1 reads against uniq-reads) / regulation direction
 
-In an SSDAm file, each row represents a splicing junction (hereinafter, SJ), where this junction was inferred by some reads in some samples. Considering an SJ as two points in the chromosome, an SJ been included in the AS comparison must satisfy the following conditions:
+In this file, each row represents a splicing junction (hereinafter, SJ), where this junction was inferred by some reads in some samples. Considering an SJ as two points in the chromosome, an SJ been included in the AS comparison must satisfy the following conditions:
 1. both points in the same gene region: a point outside the gene means no reference exon for it
 2. not in the same exon region: this means "intron in exon", which is rare. Our usage of intron-preserving gene model should avoid many such cases.
 
-That is, we can always find two different and nearest exons for every computed SJ as reference exons and take their junction points as reference positions for noting the SJ. For example, 5(+1)-6(-2) means the transcription of 1 more bp of the 5th exon and 2 less bps of the 6th exon. For another example, 5(0)-6(0) is noting an SJ agreeing the junction between exons 5&6. In so doing, we are able to collect all SJs, as well as their supporting read counts, for every exon pairs. And for every SJ, we are able to identify its preference given that the two exons were expressed.
+That is, we can always find two different and nearest exons for every computed SJ as reference exons and take their junction points as reference positions for noting the SJ. For example, 5(+1)-6(-2) means the transcription of 1 more bp of the 5th exon and 2 less bps of the 6th exon. For another example, 5(0)-6(0) is noting an SJ agreeing the junction between exons 5 & 6. In so doing, we are able to collect all SJs, as well as their supporting read counts, for every exon pairs. And for every SJ, we are able to identify its preference given that the two exons were expressed.
 
-Back to the SSDAm table. Meaning of columns:
-A. the gene ID.
-B. splice1 is the SJ to be tested. The info in the merged gene model (bam and cgff) files should be helpful for obtaining the actual junction.
-C. an indicator that if this SJ was expressed by some gene model of the gene in the database
+Back to file. Further explanations of some columns:
+B. splice1 is the SJ to be tested. The info in the merged gene model (BAM files and the `.cgff` file) should be helpful for obtaining the actual junction.
 D. splice2 is the most deviating SJ against splice1, given the same exon pair. Most deviating was done by comparing supporting read counts of splice1 in the two samples against supporting read counts of every other SJs of the same exon pair. The most significant SJ was picked as splice2. This data is not shown in the same row but usually the record of splice2 was listed in next few lines.
 E. similar with column C.
-F. indicating the difference between splice1 and splice2, considering gene orientation.
 GH. Number of splice1 supporting reads in the two samples
 IJ. Number of splice1 non-supporting reads in the two samples, given the same exon pair. "non-supporting" means reads express SJs other than splice1 and sharing the same exon pair.
 K. Comparing splice1 supporting read counts (columns G&H) by taking non-supporting read counts (columns I&J) as background. A significant p-value means supporting read counts are not proportional to non-supporting read counts, and there should be a preference of splice1 to some sample. Column L is for corresponding adjusted p-values.
-M. Fold-change was computed by supporting_ratio_2/supporting_ratio_1 (1 & 2 are for the two samples), where supporting_ratio = #supporting_read/#non-supporting_read.
-N. "enhanced" for higher chance to have a splice1-containing transcript per transcription in the second sample. Similarly, "reduced" for lower chance to have a splice1-containing transcript per transcription in the second sample.
-O~S. Similar to SSESm tables. Splice1 can be contained by a constitutional form and there might be some false alarm. Columns O&P are uniq read counts of the gene in the two samples and column Q is p-value of comparing splice1 supporting read counts against uniq read counts.
+M. Fold-change was computed by supporting_ratio_treatment/supporting_ratio_control, where supporting_ratio = #supporting_read/#non-supporting_read.
+N. "enhanced" for higher chance to have a splice1-containing transcript per transcription in the treatment sample. Similarly, "reduced" for lower chance to have a splice1-containing transcript per transcription in the treatment sample.
+O~S. Similar to the above exon-skipping table. Splice1 can be contained by a constitutional form and there might be some false alarm. Columns O & P are uniq read counts of the gene in the two samples and column Q is p-value of comparing splice1 supporting read counts against uniq read counts.
 
-Accordingly, similar suggestions with those for SSESm tables:
+Accordingly, similar suggestions with those for exon-skipping tables:
 1. filter out rows with total reads from columns G~J less than or equal to 20 (or higher as you wish), for their low effectiveness of the comparison
 2. pick rows with significant (adjusted) p-values at column K or L AND significant p-values at column Q
 
