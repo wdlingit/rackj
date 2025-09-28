@@ -95,12 +95,12 @@ Singularity> ls -l src/*.fq.gz
 
 the following perl one-liner can help us to form 12 commands of running BLAT via rackj scripts `Mapping.pl` and `MappingBlat.pl`.
 ```
-ls src/*.fq.gz | perl -ne 'chomp; /.+\/(.+?)\./; $cmd="gzip -dc $_ > $1.fq; Mapping.pl -split 4 x $1.fq $1.blat.bam MappingBlat.pl -target TAIR10_chr_all.fas -t=dna -q=rna; rm $1.fq"; print "\nCMD: $cmd\n"; system $cmd'
+ls src/*.fq.gz | perl -ne 'chomp; /.+\/(.+?)\./; $cmd="gzip -dc $_ > $1.fq; Mapping.pl -split 4 x $1.fq $1.blat.bam MappingBlat.pl -target TAIR10_chr_all.fas -t=dna -q=rna > $1.log; rm $1.fq"; print "\nCMD: $cmd\n"; system $cmd'
 ```
 
 For convenience, we will keep listing only the first commends in most of this walkthrough.
 ```
-CMD: gzip -dc src/control_rep1_R1.fq.gz > control_rep1_R1.fq; Mapping.pl -split 4 x control_rep1_R1.fq control_rep1_R1.blat.bam MappingBlat.pl -target TAIR10_chr_all.fas -t=dna -q=rna; rm control_rep1_R1.fq
+CMD: gzip -dc src/control_rep1_R1.fq.gz > control_rep1_R1.fq; Mapping.pl -split 4 x control_rep1_R1.fq control_rep1_R1.blat.bam MappingBlat.pl -target TAIR10_chr_all.fas -t=dna -q=rna > control_rep1_R1.log; rm control_rep1_R1.fq
 (... deleted)
 ```
 Points to be noticed and parameter explanation:
@@ -356,7 +356,7 @@ This file contains six columns:
 
 *: In our framework, all exons and introns are numbered following chromosome orientation.
 
-A example is `AT1G03910` exon pair `7<=>9`. In file `control_rep1.spliceCount` it was found that
+An example is `AT1G03910` exon pair `7<=>9`. In file `control_rep1.spliceCount` it was found that
 
 | GeneID | exonPair | #reads | jumping | novel | splicingPosFreq |
 |:-------|:--------:|-------:|:-------:|:-----:|:----------------|
@@ -368,7 +368,7 @@ In the IGV interface, we can see there are exactly 2 spliced reads with the firs
 
 ### `.fineSplice`
 
-This file contains six columns:
+This file contains five columns:
 1. GeneID: gene ID
 2. splice: splicing pattern (*)
 3. #reads: number of reads supporting this splicing event
@@ -377,7 +377,7 @@ This file contains six columns:
 
 *: We have a system of noting splicing junction with respect to saving information related to gene exons. Please refer [here](https://rackj.sourceforge.net/Manual/index.html#rnaseq.FineSpliceCounter) if needed.
 
-A example is `AT1G01650` spliceing pattern `10(-11)-11(0)`. In short, the splicing pattern is saying 11bps at the exon 10 end was spliced (or not been sequenced). In file `control_rep1.fineSplice` it was found that
+An example is `AT1G01650` spliceing pattern `10(-11)-11(0)`. In short, the splicing pattern is saying 11bps at the exon 10 end was excluded. In file `control_rep1.fineSplice` it was found that
 
 | GeneID | splice | #reads | novel | splicingPosFreq |
 |:-------|:------:|-------:|:-----:|:----------------|
@@ -389,13 +389,55 @@ In the IGV interface, we can see there is one spliced read spanning exons 10 and
 
 ### `.depth.intronCount` and `.depth.exonCount`
 
-This two files are in the same format, one for read depths of introns, and the other for read depths of exons. Be sure to know that all the numbering are following chromosome orientation:
+This two files are in the same format, one for read depths of introns, and the other for read depths of exons. Be sure to know that all intron/exon numbering are following chromosome orientation:
 1. GeneID: gene ID
 2. intronNo/exonNo: intron/exon number
 3. depth: average read depth of every base-pair of the intron/exon
 4. intronLen/exonLen: length of the intron/exon
 5. multi/ALL: a compatibility column with non-depth `.intronCount` and `.exonCount` files. Should be all 0's here.
 6. coveredRatio: the fraction that the intron/exon been covered by at least one read
+
+### `.log`
+
+In the mapping step, we have one `.log` file for each of the read1 and read2 files. In this session, we have one `.log` file for each execution of the `ASnumbers.pl` script. Checking them can help us to do some kind of quality checking.
+```
+Singularity> ls control_rep1*.log
+control_rep1.numbers.log  control_rep1_R1.log  control_rep1_R2.log
+
+Singularity> head -2 control_rep1_R1.log  control_rep1_R2.log
+==> control_rep1_R1.log <==
+Split processing...done
+Total query reads: 255351
+
+==> control_rep1_R2.log <==
+Split processing...done
+Total query reads: 255351
+```
+From above we can see there are `255351+255351=510702` pair-ended reads in sample control_rep1.
+
+```
+Singularity> head -19 control_rep1.numbers.log
+[2025-09-26 13:59:16] CMD: java rnaseq.RPKMComputer -GFF tair10.strand.cgff -model tair10.strand.model -M SAMun control_rep1.merged.bam -ID 0.9 -direction true -O control_rep1
+program: RPKMComputer
+canonical GFF filename (-GFF): tair10.strand.cgff
+mapping method/filename (-M):
+  SAMun : control_rep1.merged.bam
+output prefix (-O): control_rep1
+block join factor (-J): 2
+identity cutoff (-ID): 0.9
+use exon region (-exon): true
+check by containing (-contain, FALSE for by intersecting): false
+minimum overlap (-min): 8
+check all alignment blocks (-ALL): true
+care mapping direction (-direction): true
+RPKM by gene-mapping reads only (-geneOnly): false
+model filename (-model): tair10.strand.model
+
+#uniq reads: 476205
+#multi reads: 5829
+#mapped reads: 497164
+```
+From above we can see that, for sample control_rep1, 497164 out of 510702 were mapped with identity greater than or equal to 0.9. This is about 97%. Also, within 497164 reads, `476205+5829=482034` of them were counted for some gene. This is also about 97%. Note that the gene counting procedure here counts only alignments agreeing gene orientation (`-direction` `true`) so it means that our read1-reverse operation in the mapping section is correct.
 
 ## 5. Alternative-splicing event comparison between two merged samples
 
