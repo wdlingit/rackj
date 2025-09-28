@@ -446,7 +446,7 @@ The next command performs comparisons for three kinds of alternative-splicing ev
 AScomp_merged.pl tair10.strand.cgff control treatment
 ```
 
-In this workthrough example, the command would generate tab-delimited text files named `SS{IR/ES/DA}m_control-treatment.xls` for the three kinds of alternative-splicing events. These files can be opened directed by Excel. Rest part of this session explains the three files. We assume these files were opened using Excel and Excel column names A, B, C, ... were used in the following descriptions.
+In this workthrough example, the command would generate tab-delimited text files named `SS{IR/ES/DA}m_control-treatment.xls` ("m" for merged) for the three kinds of alternative-splicing events. These files can be opened directed by Excel. Rest part of this session explains the three files. We assume these files were opened using Excel and Excel column names A, B, C, ... were used in the following descriptions.
 
 ### Intron-retention: SSIRm_control-treatment.xls
 
@@ -490,7 +490,7 @@ Suggested filtering criteria:
 1. filter out rows with total reads from columns C~F less than or equal to 20 (or higher as you wish), for their low effectiveness of the comparison
 2. pick rows with significant (adjusted) p-values at column H or I AND significant p-values at column O
 
-### Donor-acceptor: SSDAm_control-treatment.xls
+### Donor-acceptor change: SSDAm_control-treatment.xls
 
 Column meanings:
 - A. Gene ID
@@ -528,21 +528,30 @@ Accordingly, similar suggestions with those for exon-skipping tables:
 
 ## 6. Alternative-splicing evnet comparison based on ratios with respects to biological replicates
 
+Similar with the last section, the next command performs treatment-against-control comparisons for three kinds of alternative-splicing events based on files generated in the last-last section for the 6 separate samples.
 ```
 AScomp_separate.pl tair10.strand.cgff control:control_rep1,control_rep2,control_rep4 treatment:treatment_rep5,treatment_rep7,treatment_rep9
 ```
+Pointes to be noticed:
+1. The two parameters `control:control_rep1,control_rep2,control_rep4` and `treatment:treatment_rep5,treatment_rep7,treatment_rep9` are in the form "merged_sample_name:separate_sample1,separate_sample2,..."
+2. For each of the sample names (no matter merged or separate), a corresponding execution of `ASnumbers.pl` is required with exactly the same sample name.
+3. `AScomp_separate.pl` requires output files of `AScomp_merged.pl`. 
 
-SSDAs files, columns were colored for easier description:
-a. In first few uncolored columns, there are info of the splicing pattern to be computed. Splice2 is the most deviate splicing pattern to Splice1.
-b. orange columns, numbers of reads that support the splicing pattern
-c. green columns, numbers of reads that are NOT supporting the splicing pattern
-d. orange columns, uniq read counts of the gene, for expression levels of the gene
-e. green columns, log-ratios of numbers of supporting reads versus numbers of non-supporting reads
-f. uncolored columns, P-values of T-TESTs on log-ratios, adjusted P-values, regulation, fold-changes, and P-values by comparing the merged samples
-g. green columns, ratios of numbers of supporting reads versus gene expression levels
-h. uncolored columns, P-values of T-TESTs on ratios, adjusted P-values, regulation, and fold-changes (-1 for divide-by-zero)
+In this workthrough example, the command would generate tab-delimited text files named `SS{IR/ES/DA}s_control-treatment.xls` ("s" for separate) for the three kinds of alternative-splicing events. These files can be opened directed by Excel. Rest part of this session explains the three files. We assume these files were opened using Excel.
 
-Note that P-values by comparing the merged samples (column SSDAm) can be considered as a confidence indicator that a small one (ex: <0.05) means enough evidence of the change.
+### Intron-retention: SSIRs_control-treatment.xls
+
+SSIRs files, columns were colored for easier description:
+a. gene ID, intron number, and intron length
+b. orange columns, average coverage depths of the intron in biological replicates
+c. green columns, sums of average coverage depths of the two neighboring exons of the intron in biological replicates
+d. orange columns, ratios of intron depths to exon depths
+e. next 6 uncolored columns, T-test P-value that comparing treatment ratios against control ratios, adjusted P-value, regulation, fold-change (-1 for divide-by-zero), P-values by comparing the merged samples, and minimum average depths of neighboring exons
+f. rest uncolored columns, fractions of the intron been covered by reads.
+
+Note that P-values by comparing the merged samples (column SSIRm) can be considered as a confidence indicator that a small one (ex: <0.05) means enough evidence of the change.
+
+### Exon-skipping: SSESs_control-treatment.xls
 
 SSESs files, columns were colored for easier description:
 a. In first few uncolored columns, there are info of the splicing pattern to be computed
@@ -556,12 +565,16 @@ h. uncolored columns, P-values of T-TESTs on ratios, adjusted P-values, regulati
 
 Note that P-values by comparing the merged samples (column SSESm) can be considered as a confidence indicator that a small one (ex: <0.05) means enough evidence of the change.
 
-SSIRs files, columns were colored for easier description:
-a. gene ID, intron number, and intron length
-b. orange columns, average coverage depths of the intron in biological replicates
-c. green columns, sums of average coverage depths of the two neighboring exons of the intron in biological replicates
-d. orange columns, ratios of intron depths to exon depths
-e. next 6 uncolored columns, T-test P-value that comparing treatment ratios against control ratios, adjusted P-value, regulation, fold-change (-1 for divide-by-zero), P-values by comparing the merged samples, and minimum average depths of neighboring exons
-f. rest uncolored columns, fractions of the intron been covered by reads.
+### Donor-acceptor change: SSDAs_control-treatment.xls
 
-Note that P-values by comparing the merged samples (column SSIRm) can be considered as a confidence indicator that a small one (ex: <0.05) means enough evidence of the change.
+SSDAs files, columns were colored for easier description:
+a. In first few uncolored columns, there are info of the splicing pattern to be computed. Splice2 is the most deviate splicing pattern to Splice1.
+b. orange columns, numbers of reads that support the splicing pattern
+c. green columns, numbers of reads that are NOT supporting the splicing pattern
+d. orange columns, uniq read counts of the gene, for expression levels of the gene
+e. green columns, log-ratios of numbers of supporting reads versus numbers of non-supporting reads
+f. uncolored columns, P-values of T-TESTs on log-ratios, adjusted P-values, regulation, fold-changes, and P-values by comparing the merged samples
+g. green columns, ratios of numbers of supporting reads versus gene expression levels
+h. uncolored columns, P-values of T-TESTs on ratios, adjusted P-values, regulation, and fold-changes (-1 for divide-by-zero)
+
+Note that P-values by comparing the merged samples (column SSDAm) can be considered as a confidence indicator that a small one (ex: <0.05) means enough evidence of the change.
