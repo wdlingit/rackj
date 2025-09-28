@@ -295,7 +295,7 @@ The above output shows that `gene` `AT1G01020` has two `transcripts` `AT1G01020.
 
 ## 4. Compute basic numbers
 
-From the last two sections, we have BAM files storing reads mapping to where of the genome and coordinate files storing where genes and transcripts located in the genome. Together them we can compute various kind of numbers of reads for genes and transcripts. The next perl one-liner generates 6 commands that use `ASnumbers.pl` to generate many kinds of numbers for the alternative-splicing computation for the 6 samples.
+From the last two sections, we have BAM files storing reads mapping to where of the genome and coordinate files storing where genes and transcripts located in the genome. Together them we can compute various kinds of numbers of reads for genes and transcripts. The next perl one-liner generates 6 commands that use `ASnumbers.pl` to generate files of numbers for the 6 samples for the alternative-splicing computation.
 ```
 ls *.merged.bam | perl -ne 'chomp; /(.+?)\./; push @{$hash{$1}},$_; if(eof){ for $key (sort keys %hash){ $cmd="ASnumbers.pl -model tair10.strand.model tair10.strand.cgff $key @{$hash{$key}} > $key.numbers.log"; print "\nCMD: $cmd\n"; system "$cmd"; } }'
 ```
@@ -304,10 +304,10 @@ CMD: ASnumbers.pl -model tair10.strand.model tair10.strand.cgff control_rep1 con
 (deleted...)
 ```
 Points to be noticed and parameter explanation:
-1. option `-model tair10.strand.model` is provided for the alternative donor-acceptor computation. It can be omitted.
+1. option `-model tair10.strand.model` is provided for the alternative donor-acceptor computation for deciding whether the genome annotation database contains a given splicing junction. It can be omitted.
 2. the first parameter `tair10.strand.cgff` is requried for exon coordinates of genes.
 3. the second parameter (ex: `control_rep1`) is for the prefix of output files.
-4. rest parameters shoudl be BAM files.
+4. rest parameters should be BAM files, sorted-by-name.
 
 In addition to compupte all the numbers for 6 samples sepearately, we compute the same numbers for the two merged sample. The following perl one-liner merges the three replicates for each of the sample and generates a corresponding `ASnumbers.pl` command.
 ```
@@ -375,9 +375,9 @@ This file contains five columns:
 4. novel: is this splicing event novel? (this column is added if `-model` specified)
 5. splicingPosFreq: splicing position fequency of reads
 
-*: We have a system of noting splicing junction with respect to saving information related to gene exons. Please refer [here](https://rackj.sourceforge.net/Manual/index.html#rnaseq.FineSpliceCounter) if needed.
+*: We have a system of noting splicing junction with respect to relative positions to gene exons. Please refer [here](https://rackj.sourceforge.net/Manual/index.html#rnaseq.FineSpliceCounter) if needed.
 
-An example is `AT1G01650` spliceing pattern `10(-11)-11(0)`. In short, the splicing pattern is saying 11bps at the exon 10 end was excluded. In file `control_rep1.fineSplice` it was found that
+An example is `AT1G01650` spliceing pattern `10(-11)-11(0)`. In short, the splicing pattern is saying 11bps at the exon 10 3' end was excluded. In file `control_rep1.fineSplice` it was found that
 
 | GeneID | splice | #reads | novel | splicingPosFreq |
 |:-------|:------:|-------:|:-----:|:----------------|
@@ -413,7 +413,7 @@ Total query reads: 255351
 Split processing...done
 Total query reads: 255351
 ```
-From above we can see there are `255351+255351=510702` pair-ended reads in sample control_rep1.
+From above we see there are `255351+255351=510702` pair-ended reads in sample control_rep1.
 
 ```
 Singularity> head -19 control_rep1.numbers.log
@@ -441,9 +441,56 @@ From above we can see that, for sample control_rep1, 497164 out of 510702 were m
 
 ## 5. Alternative-splicing event comparison between two merged samples
 
+The next command performs comparisons for three kinds of alternative-splicing events based on files generated in the last section for the two merged samples control and treatment.
 ```
 AScomp_merged.pl tair10.strand.cgff control treatment
 ```
+
+In this workthrough example, the command would generate tab-delimited text files named `SS{IR/ES/DA}m_control-treatment.xls` for the three kinds of alternative-splicing events. These files can be opened directed by Excel. Rest part of this session explains the three files. We assume these files were opened using Excel and Excel column names A, B, C, ... were used in the following descriptions.
+
+### Intron-retention: SSIRm_control-treatment.xls
+
+Column meanings:
+A. Gene ID
+B/C. the intron / its length
+D/E. read depths of the intron in the two samples
+F/G. average read depths of neighboring exons in the two samples
+H/I/J. chi-squared value (goodness-of-fit), corresponding P-value, and adjusted P-value
+K. the minimum averaged exon read depth
+L/M. fold-change (comparing intron depth against exon depth) / regulation direction
+N/O. portions of the intron been covered by any reads in the two samples
+
+In this file, every row represents an intron, and there are four numbers (columns D~G) directly related with the comparison. The idea of the comparison is to take read depths of neighboring exons in the two samples (columns F & G) as the background, and see if read depths of the intron in the two samples (columns D & E) are not following the background. In other words, "not following the background" means "not proportional to the background". A significant p-value (column I) or adjusted p-value (column J) means such a preference to one of the two samples.
+
+Sometimes the computation could be wrong simply because of erroneous intron annotation. For example, an intron in database but actually an exon. To filter out unreliable records, you may consider to set some of the constraints:
+1. remove rows with low exonMIN (<1, column K), because low read depths of neighboring exons mean low effectiveness of the comparison
+2. remove rows with exonMIN lower than intron read depths, because this might mean wrong database annotation
+3. remove rows with two low (<0.7) covered fractions (columns N & O). Covered fraction means the region of introns been covered by any reads. An wrongly reported intron (by a significant p-value) may have low fraction values in both samples.
+
+### Exon-skipping: SSESm_control-treatment.xls
+
+Column meanings:
+A. Gene ID
+B. the splicing pattern of the exon skipping event
+C/D. numbers of reads supporting the exon-skipping event in the two samples
+E/F. numbers of reads not supporting the exon-skipping event in the two samples, i.e., reads involving at least one skipped exon and one boundary exon
+G/H/I. chi-squared value (goodness-of-fit), corresponding P-value, and adjusted P-value
+J/K. fold-change (comparing exon-skipping reads against non-exon-skipping reads) / regulation direction
+L/M. read-depths of uniq-reads in the two samples
+N/O. chi-squared value (goodness-of-fit) and corresponding P-value
+P/Q. fold-change (comparing exon-skipping reads against uniq-read-depths) / regulation direction
+
+In this file, each row represents a non-consecutive exon pair, which were spanned by some reads in some samples. By "spanned" it means that a read was split into parts to be mapped to the genome, and these exon regions were mapped by two consecutive read parts. In other words, the spanning read skipped some exon(s) between the non-consecutive exon pairs, and we consider that the read is supporting the exon-skipping event (hereinafter, ES event). In column B, the two numbers are for the two non-consecutive exons (numbered in chromosome orientation, must refer the merged gene model). Columns C & D are read counts supporting the ES event (noted by column B) in the two samples, and columns E & F are read counts not supporting the ES event in the two samples. By "not supporting" it means a read is spanning from one of the non-consecutive exons to a skipped exon. For example, let's say the ES event is 3<=>5 (meaning exon 4 was skipped by some reads), a read was consider as not supporting the ES event means that it is spanning exons 3 & 4 or 4 & 5.
+
+Accordingly, given an ES event, we have its supporting read counts and non-supporting read counts in columns C~F. Comparing them we have p-values and adjusted p-values in columns H & I (column G can be omitted). Generally speaking, a significant (adjusted) p-value means supporting read counts are not proportional to non-supporting read counts, and there should be a preference of the exon-skipping event to some sample. Fold-change at column J was computed by supporting_ratio_treatment/supporting_ratio_control, where supporting_ratio = #supporting_read/#non-supporting_read. For an enhanced (column K, regulation) ES event, its supporting_ratio_treatment is greater than supporting_ratio_control, means higher chance to have an ES transcript per transcription in the treatment sample. Similarly, a reduced ES event means lower chance to have an ES transcript per transcription in the treatment sample.
+
+In some cases, an isoform containing ES event(s) could be the constitutional form. And, if some other form without ES is preferential to some sample, the above comparison could give significant p-value(s). To detect such false alarms, ES supporting read counts were compared to read depths (columns L & M) of the gene. The corresponding p-value (column O) should be significant if the ES event is not constitutional.
+
+Suggested filtering criteria:
+1. filter out rows with total reads from columns C~F less than or equal to 20 (or higher as you wish), for their low effectiveness of the comparison
+2. pick rows with significant (adjusted) p-values at column H or I AND significant p-values at column O
+
+### Donor-acceptor: SSDAm_control-treatment.xls
 
 SSDAm files:
 A. Gene ID
@@ -457,45 +504,6 @@ M/N. fold-change (comparing splice1 reads against non-splice1 reads) / regulatio
 O/P. numbers of uniq-reads of the gene in the two samples
 Q. Fisher exact test P-value of G/H/O/P
 R/S. fold-change (comparing splice1 reads against uniq-reads) / regulation direction
-
-SSESm files:
-A. Gene ID
-B. the splicing pattern of the exon skipping event
-C/D. numbers of reads supporting the exon-skipping event in the two samples
-E/F. numbers of reads not supporting the exon-skipping event in the two samples, i.e., reads involving at least one skipped exon and one boundary exon
-G/H/I. chi-squared value (goodness-of-fit), corresponding P-value, and adjusted P-value
-J/K. fold-change (comparing exon-skipping reads against non- exon-skipping reads) / regulation direction
-L/M. read-depths of uniq-reads in the two samples
-N/O. chi-squared value (goodness-of-fit) and corresponding P-value
-P/Q. fold-change (comparing exon-skipping reads against uniq-read-depths) / regulation direction
-
-SSIRm files:
-A. Gene ID
-B/C. the intron / its length
-D/E. read depths of the intron in the two samples
-F/G. average read depths of neighboring exons in the two samples
-H/I/J. chi-squared value (goodness-of-fit), corresponding P-value, and adjusted P-value
-K. the minimum averaged exon read depth
-L/M. fold-change (comparing intron depth against exon depth) / regulation direction
-N/O. portions of the intron been covered by any reads in the two samples
-
-For alternative-splicing, intron-retention comparisons should be the simplest. It would be the best to start with a SSIRm_* file of the compared samples you like. In this file, every row represents an intron, and there are four numbers (columns D~G) directly related with the comparison. The idea of the comparison is to take read depths of neighboring exons in the two samples (columns F&G) as the background, and see if read depths of the intron in the two samples (columns D&E) are not following the background. In other words, "not following the background" means "not proportional to the background". A significant p-value (column I) or adjusted p-value (column J) means such a preference to one of the two samples.
-
-Sometimes the computation could be wrong simply because of erroneous intron annotation. For example, an intron in database but actually an exon. To filter out unreliable records, you may consider to set some of the constraints:
-
-1. remove rows with low exonMIN (<1, column K), because low read depths of neighboring exons mean low effectiveness of the comparison
-2. remove rows with exonMIN lower than intron read depths, because this might because of wrong database annotation
-3. remove rows with two low (<0.7) covered fractions (columns N&O). Covered fraction means the region of introns been covered by any reads. An wrongly reported intron (by a significant p-value) may have low fraction values in both samples.
-
-In an SSESm file, each row represents a non-consecutive exon pair, which were spanned by some reads in some samples. By "spanned" it means that a read was split into parts to be mapped to the genome, and these exon regions were mapped by two consecutive read parts. In other words, the spanning read skipped some exon(s) between the non-consecutive exon pairs, and we consider that the read is supporting the exon-skipping event (hereinafter, ES event). In column B, the two numbers are for the two non-consecutive exons (numbered in chromosome orientation, must refer the merged gene model). Columns C&D are read counts supporting the ES event (noted by column B) in the two samples, and columns E&F are read counts not supporting the ES event in the two samples. By "not supporting" it means a read is spanning from one of the non-consecutive exons to a skipped exon. For example, let's say the ES event is 3<=>5 (meaning exon 4 was skipped by some reads), a read was consider as not supporting the ES event means that it is spanning exons 3&4 or 4&5.
-
-So, given an ES event, we have its supporting read counts and non-supporting read counts in columns C~F. Comparing them we have p-values and adjusted p-values in columns H&I (column G can be omitted). Generally speaking, a significant (adjusted) p-value means supporting read counts are not proportional to non-supporting read counts, and there should be a preference of the exon-skipping event to some sample. Fold-change at column J was computed by supporting_ratio_2/supporting_ratio_1, where supporting_ratio = #supporting_read/#non-supporting_read. For an enhanced (column K, regulation) ES event, its supporting_ratio_2 is greater than supporting_ratio_1, means higher chance to have an ES transcript per transcription in the second sample. Similarly, a reduced ES event means lower chance to have an ES transcript per transcription in the second sample.
-
-In some cases, an isoform containing ES event(s) could be the constitutional form. And, if some other form without ES is preferential to some sample, the above comparison could give significant p-value(s). To detect such false alarms, ES supporting read counts were compared to read depths (columns L&M) of the gene. The corresponding p-value (column O) should be significant if the ES event is not constitutional.
-
-For SSESm tables we have the following suggestions:
-1. filter out rows with total reads from columns C~F less than or equal to 20 (or higher as you wish), for their low effectiveness of the comparison
-2. pick rows with significant (adjusted) p-values at column H or I AND significant p-values at column O
 
 In an SSDAm file, each row represents a splicing junction (hereinafter, SJ), where this junction was inferred by some reads in some samples. Considering an SJ as two points in the chromosome, an SJ been included in the AS comparison must satisfy the following conditions:
 1. both points in the same gene region: a point outside the gene means no reference exon for it
