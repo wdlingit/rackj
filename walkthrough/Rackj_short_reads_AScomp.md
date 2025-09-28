@@ -399,7 +399,7 @@ This two files are in the same format, one for read depths of introns, and the o
 
 ### `.log`
 
-In the mapping step, we have one `.log` file for each of the read1 and read2 files. In this session, we have one `.log` file for each execution of the `ASnumbers.pl` script. Checking them can help us to do some kind of quality checking.
+In the mapping step, we have one `.log` file for each of the read1 and read2 files. In this session, we have one `.log` file for each execution of the `ASnumbers.pl` script. Checking them can help us to do some kind of quality checking. Take sample control_rep1 as the example.
 ```
 Singularity> ls control_rep1*.log
 control_rep1.numbers.log  control_rep1_R1.log  control_rep1_R2.log
@@ -437,7 +437,7 @@ model filename (-model): tair10.strand.model
 #multi reads: 5829
 #mapped reads: 497164
 ```
-From above we can see that, for sample control_rep1, 497164 out of 510702 were mapped with identity greater than or equal to 0.9. This is about 97%. Also, within 497164 reads, `476205+5829=482034` of them were counted for some gene. This is also about 97%. Note that the gene counting procedure here counts only alignments agreeing gene orientation (`-direction` `true`) so it means that our read1-reverse operation in the mapping section is correct.
+From above we can see that, for sample control_rep1, 497164 out of 510702 were mapped with identity greater than or equal to 0.9 (option `-ID`). This is about 97%. Also, within 497164 reads, `476205+5829=482034` were counted for some genes. This is also about 97%. Note that the gene counting procedure here counts only alignments agreeing gene orientation (`-direction` `true`) so it means that our read1-reverse operation in the mapping section is correct.
 
 ## 5. Alternative-splicing event comparison between two merged samples
 
@@ -445,8 +445,118 @@ From above we can see that, for sample control_rep1, 497164 out of 510702 were m
 AScomp_merged.pl tair10.strand.cgff control treatment
 ```
 
+SSDAm files:
+A. Gene ID
+B/C. the splicing pattern (splice1) / is this splicing pattern in database
+D/E. the splicing pattern that is most deviated from splice1 (splice2) / is this splicing pattern in database
+F. the difference between splice1 and splice2 is of donor and/or acceptor
+G/H. numbers of reads supporting splice1 in the two samples
+I/J. numbers of reads not supporting splice1 in the two samples
+K/L. Fisher exact test P-value of G/H/I/J, adjusted P-value
+M/N. fold-change (comparing splice1 reads against non-splice1 reads) / regulation direction
+O/P. numbers of uniq-reads of the gene in the two samples
+Q. Fisher exact test P-value of G/H/O/P
+R/S. fold-change (comparing splice1 reads against uniq-reads) / regulation direction
+
+SSESm files:
+A. Gene ID
+B. the splicing pattern of the exon skipping event
+C/D. numbers of reads supporting the exon-skipping event in the two samples
+E/F. numbers of reads not supporting the exon-skipping event in the two samples, i.e., reads involving at least one skipped exon and one boundary exon
+G/H/I. chi-squared value (goodness-of-fit), corresponding P-value, and adjusted P-value
+J/K. fold-change (comparing exon-skipping reads against non- exon-skipping reads) / regulation direction
+L/M. read-depths of uniq-reads in the two samples
+N/O. chi-squared value (goodness-of-fit) and corresponding P-value
+P/Q. fold-change (comparing exon-skipping reads against uniq-read-depths) / regulation direction
+
+SSIRm files:
+A. Gene ID
+B/C. the intron / its length
+D/E. read depths of the intron in the two samples
+F/G. average read depths of neighboring exons in the two samples
+H/I/J. chi-squared value (goodness-of-fit), corresponding P-value, and adjusted P-value
+K. the minimum averaged exon read depth
+L/M. fold-change (comparing intron depth against exon depth) / regulation direction
+N/O. portions of the intron been covered by any reads in the two samples
+
+For alternative-splicing, intron-retention comparisons should be the simplest. It would be the best to start with a SSIRm_* file of the compared samples you like. In this file, every row represents an intron, and there are four numbers (columns D~G) directly related with the comparison. The idea of the comparison is to take read depths of neighboring exons in the two samples (columns F&G) as the background, and see if read depths of the intron in the two samples (columns D&E) are not following the background. In other words, ▒~@~\not following the background▒~@~] means ▒~@~\not proportional to the background▒~@~]. A significant p-value (column I) or adjusted p-value (column J) means such a preference to one of the two samples.
+
+Sometimes the computation could be wrong simply because of erroneous intron annotation. For example, an intron in database but actually an exon. To filter out unreliable records, you may consider to set some of the constraints:
+
+1. remove rows with low exonMIN (<1, column K), because low read depths of neighboring exons mean low effectiveness of the comparison
+2. remove rows with exonMIN lower than intron read depths, because this might because of wrong database annotation
+3. remove rows with two low (<0.7) covered fractions (columns N&O). Covered fraction means the region of introns been covered by any reads. An wrongly reported intron (by a significant p-value) may have low fraction values in both samples.
+
+In an SSESm file, each row represents a non-consecutive exon pair, which were spanned by some reads in some samples. By ▒~@~\spanned▒~@~] it means that a read was split into parts to be mapped to the genome, and these exon regions were mapped by two consecutive read parts. In other words, the spanning read skipped some exon(s) between the non-consecutive exon pairs, and we consider that the read is supporting the exon-skipping event (hereinafter, ES event). In column B, the two numbers are for the two non-consecutive exons (numbered in chromosome orientation, must refer the merged gene model). Columns C&D are read counts supporting the ES event (noted by column B) in the two samples, and columns E&F are read counts not supporting the ES event in the two samples. By ▒~@~\not supporting▒~@~] it means a read is spanning from one of the non-consecutive exons to a skipped exon. For example, let▒~@~Ys say the ES event is 3<=>5 (meaning exon 4 was skipped by some reads), a read was consider as not supporting the ES event means that it is spanning exons 3&4 or 4&5.
+
+So, given an ES event, we have its supporting read counts and non-supporting read counts in columns C~F. Comparing them we have p-values and adjusted p-values in columns H&I (column G can be omitted). Generally speaking, a significant (adjusted) p-value means supporting read counts are not proportional to non-supporting read counts, and there should be a preference of the exon-skipping event to some sample. Fold-change at column J was computed by supporting_ratio_2/supporting_ratio_1, where supporting_ratio = #supporting_read/#non-supporting_read. For an enhanced (column K, regulation) ES event, its supporting_ratio_2 is greater than supporting_ratio_1, means higher chance to have an ES transcript per transcription in the second sample. Similarly, a reduced ES event means lower chance to have an ES transcript per transcription in the second sample.
+
+In some cases, an isoform containing ES event(s) could be the constitutional form. And, if some other form without ES is preferential to some sample, the above comparison could give significant p-value(s). To detect such false alarms, ES supporting read counts were compared to read depths (columns L&M) of the gene. The corresponding p-value (column O) should be significant if the ES event is not constitutional.
+
+For SSESm tables we have the following suggestions:
+1. filter out rows with total reads from columns C~F less than or equal to 20 (or higher as you wish), for their low effectiveness of the comparison
+2. pick rows with significant (adjusted) p-values at column H or I AND significant p-values at column O
+
+In an SSDAm file, each row represents a splicing junction (hereinafter, SJ), where this junction was inferred by some reads in some samples. Considering an SJ as two points in the chromosome, an SJ been included in the AS comparison must satisfy the following conditions:
+1. both points in the same gene region: a point outside the gene means no reference exon for it
+2. not in the same exon region: this means ▒~@~\intron in exon▒~@~], which is rare. Our usage of intron-preserving gene model should avoid many such cases.
+
+That is, we can always find two different and nearest exons for every computed SJ as reference exons and take their junction points (3▒~@~Y end of the 5▒~@~Y exon and 5▒~@~Y end of the 3▒~@~Y exon) as reference positions for noting the SJ. For example, ▒~@~\5(+1)-6(-2)▒~@~] means the transcription of ▒~@~\1 more bp of the 5th exon▒~@~] and ▒~@~\2 less bps of the 6th exon▒~@~]. For another example, ▒~@~\5(0)-6(0)▒~@~] is noting an SJ agreeing the junction between exons 5&6. In so doing, we are able to collect all SJs, as well as their supporting read counts, for every exon pairs. And for every SJ, we are able to identify its preference given that the two exons were expressed.
+
+Back to the SSDAm table. Meaning of columns:
+A. the gene ID.
+B. splice1 is the SJ to be tested. The info in the merged gene model (bam and cgff) files should be helpful for obtaining the actual junction.
+C. an indicator that if this SJ was expressed by some gene model of the gene in the database
+D. splice2 is the most deviating SJ against splice1, given the same exon pair. ▒~@~\Most deviating▒~@~] was done by comparing supporting read counts of splice1 in the two samples against supporting read counts of every other SJs of the same exon pair. The most significant SJ was picked as splice2. This data is not shown in the same row but usually the record of splice2 was listed in next few lines.
+E. similar with column C.
+F. indicating the difference between splice1 and splice2, considering gene orientation.
+GH. Number of splice1 supporting reads in the two samples
+IJ. Number of splice1 non-supporting reads in the two samples, given the same exon pair. ▒~@~\non-supporting▒~@~] means reads express SJs other than splice1 and sharing the same exon pair.
+K. Comparing splice1 supporting read counts (columns G&H) by taking non-supporting read counts (columns I&J) as background. A significant p-value means supporting read counts are not proportional to non-supporting read counts, and there should be a preference of splice1 to some sample. Column L is for corresponding adjusted p-values.
+M. Fold-change was computed by supporting_ratio_2/supporting_ratio_1 (1 & 2 are for the two samples), where supporting_ratio = #supporting_read/#non-supporting_read.
+N. ▒~@~\enhanced▒~@~] for higher chance to have a splice1-containing transcript per transcription in the second sample. Similarly, ▒~@~\reduced▒~@~] for lower chance to have a splice1-containing transcript per transcription in the second sample.
+O~S. Similar to SSESm tables. Splice1 can be contained by a constitutional form and there might be some false alarm. Columns O&P are uniq read counts of the gene in the two samples and column Q is p-value of comparing splice1 supporting read counts against uniq read counts.
+
+Accordingly, similar suggestions with those for SSESm tables:
+1. filter out rows with total reads from columns G~J less than or equal to 20 (or higher as you wish), for their low effectiveness of the comparison
+2. pick rows with significant (adjusted) p-values at column K or L AND significant p-values at column Q
+
 ## 6. Alternative-splicing evnet comparison based on ratios with respects to biological replicates
 
 ```
 AScomp_separate.pl tair10.strand.cgff control:control_rep1,control_rep2,control_rep4 treatment:treatment_rep5,treatment_rep7,treatment_rep9
 ```
+
+SSDAs files, columns were colored for easier description:
+a. In first few uncolored columns, there are info of the splicing pattern to be computed. Splice2 is the most deviate splicing pattern to Splice1.
+b. orange columns, numbers of reads that support the splicing pattern
+c. green columns, numbers of reads that are NOT supporting the splicing pattern
+d. orange columns, uniq read counts of the gene, for expression levels of the gene
+e. green columns, log-ratios of numbers of supporting reads versus numbers of non-supporting reads
+f. uncolored columns, P-values of T-TESTs on log-ratios, adjusted P-values, regulation, fold-changes, and P-values by comparing the merged samples
+g. green columns, ratios of numbers of supporting reads versus gene expression levels
+h. uncolored columns, P-values of T-TESTs on ratios, adjusted P-values, regulation, and fold-changes (-1 for divide-by-zero)
+
+Note that P-values by comparing the merged samples (column SSDAm) can be considered as a confidence indicator that a small one (ex: <0.05) means enough evidence of the change.
+
+SSESs files, columns were colored for easier description:
+a. In first few uncolored columns, there are info of the splicing pattern to be computed
+b. orange columns, numbers of reads that support the splicing pattern
+c. green columns, numbers of reads that are NOT supporting the splicing pattern
+d. orange columns, depths of the gene, for expression levels of the gene
+e. green columns, log-ratios of numbers of supporting reads versus numbers of non-supporting reads
+f. uncolored columns, P-values of T-TESTs on log-ratios, adjusted P-values, regulation, fold-changes, and P-values by comparing the merged samples
+g. green columns, ratios of numbers of supporting reads versus gene expression levels
+h. uncolored columns, P-values of T-TESTs on ratios, adjusted P-values, regulation, and fold-changes (-1 for divide-by-zero)
+
+Note that P-values by comparing the merged samples (column SSESm) can be considered as a confidence indicator that a small one (ex: <0.05) means enough evidence of the change.
+
+SSIRs files, columns were colored for easier description:
+a. gene ID, intron number, and intron length
+b. orange columns, average coverage depths of the intron in biological replicates
+c. green columns, sums of average coverage depths of the two neighboring exons of the intron in biological replicates
+d. orange columns, ratios of intron depths to exon depths
+e. next 6 uncolored columns, T-test P-value that comparing treatment ratios against control ratios, adjusted P-value, regulation, fold-change (-1 for divide-by-zero), P-values by comparing the merged samples, and minimum average depths of neighboring exons
+f. rest uncolored columns, fractions of the intron been covered by reads.
+
+Note that P-values by comparing the merged samples (column SSIRm) can be considered as a confidence indicator that a small one (ex: <0.05) means enough evidence of the change.
