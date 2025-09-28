@@ -541,40 +541,43 @@ In this workthrough example, the command would generate tab-delimited text files
 
 ### Intron-retention: SSIRs_control-treatment.xls
 
-SSIRs files, columns were colored for easier description:
-a. gene ID, intron number, and intron length
-b. orange columns, average coverage depths of the intron in biological replicates
-c. green columns, sums of average coverage depths of the two neighboring exons of the intron in biological replicates
-d. orange columns, ratios of intron depths to exon depths
-e. next 6 uncolored columns, T-test P-value that comparing treatment ratios against control ratios, adjusted P-value, regulation, fold-change (-1 for divide-by-zero), P-values by comparing the merged samples, and minimum average depths of neighboring exons
-f. rest uncolored columns, fractions of the intron been covered by reads.
+Column meanings:
+- a. columns A~C: gene ID, intron number, and intron length
+- b. columns named as "intronXYZ": average coverage depths of the intron in biological replicates
+- c. columns named as "exonXYZ": sums of average coverage depths of the two neighboring exons of the intron in biological replicates
+- d. columns named as "intronXYZ_ratio": ratios of intron depths to exon depths, made by depths values from above items b and c.
+- e. the next column named "TTEST": P-value that comparing treatment ratios against control ratios of columns in item d.
+- f. the next columns named "adjP", "regulation", "foldChange", "SSIRm", and "exonMin": respectively for adjusted p-values of the TTEST column, regulation direction, and fold-change (-1 for divide-by-zero), p-values by comparing the merged samples, and minimum average depths of neighboring exons
+- g. rest columns: fractions of the intron been covered by reads in each of the samples.
 
-Note that P-values by comparing the merged samples (column SSIRm) can be considered as a confidence indicator that a small one (ex: <0.05) means enough evidence of the change.
+Note that p-values by comparing the merged samples (column SSIRm) can be considered as a confidence indicator that a small one (ex: <0.05) means enough evidence of the change.
 
 ### Exon-skipping: SSESs_control-treatment.xls
 
-SSESs files, columns were colored for easier description:
-a. In first few uncolored columns, there are info of the splicing pattern to be computed
-b. orange columns, numbers of reads that support the splicing pattern
-c. green columns, numbers of reads that are NOT supporting the splicing pattern
-d. orange columns, depths of the gene, for expression levels of the gene
-e. green columns, log-ratios of numbers of supporting reads versus numbers of non-supporting reads
-f. uncolored columns, P-values of T-TESTs on log-ratios, adjusted P-values, regulation, fold-changes, and P-values by comparing the merged samples
-g. green columns, ratios of numbers of supporting reads versus gene expression levels
-h. uncolored columns, P-values of T-TESTs on ratios, adjusted P-values, regulation, and fold-changes (-1 for divide-by-zero)
+Column meanings:
+- a. columns A & B, gene ID and the exon-skipping splicing pattern
+- b. columns named just by sample names: numbers of reads that support the splicing pattern
+- c. columns named by concatenation of "x" and sample names: numbers of reads that are NOT supporting the splicing pattern
+- d. columns named as "depthXYZ": depths of the gene, for expression levels of the gene
+- e. columns named as "..._logRatio": log-ratios of numbers of supporting reads (above item b) versus numbers of non-supporting reads (above item c)
+- f. the next column named "TTEST": P-value that comparing treatment ratios against control ratios of columns in item e.
+- g. the next columns named "adjP", "regulation", "foldChange", and "SSESm": respectively for adjusted p-values of the TTEST column, regulation direction, fold-changes, and p-values by comparing the merged samples
+- h. columns named as "..._ratio": ratios of numbers of supporting reads versus gene expression levels
+- i. rest columns: respectively for P-values of T-TESTs on ratios of columns in item h, adjusted P-values, regulation, and fold-changes (-1 for divide-by-zero)
 
 Note that P-values by comparing the merged samples (column SSESm) can be considered as a confidence indicator that a small one (ex: <0.05) means enough evidence of the change.
 
 ### Donor-acceptor change: SSDAs_control-treatment.xls
 
-SSDAs files, columns were colored for easier description:
-a. In first few uncolored columns, there are info of the splicing pattern to be computed. Splice2 is the most deviate splicing pattern to Splice1.
-b. orange columns, numbers of reads that support the splicing pattern
-c. green columns, numbers of reads that are NOT supporting the splicing pattern
-d. orange columns, uniq read counts of the gene, for expression levels of the gene
-e. green columns, log-ratios of numbers of supporting reads versus numbers of non-supporting reads
-f. uncolored columns, P-values of T-TESTs on log-ratios, adjusted P-values, regulation, fold-changes, and P-values by comparing the merged samples
-g. green columns, ratios of numbers of supporting reads versus gene expression levels
-h. uncolored columns, P-values of T-TESTs on ratios, adjusted P-values, regulation, and fold-changes (-1 for divide-by-zero)
+Column meanings:
+- a. In first few uncolored columns, there are info of the splicing pattern to be computed. Splice2 is the most deviate splicing pattern to Splice1.
+- b. columns named "... Splice1": numbers of reads that support the splicing pattern
+- c. columns named "... SpliceAll": numbers of reads that are NOT supporting the splicing pattern
+- d. columns named "... Uniq": uniq read counts of the gene, for expression levels of the gene
+- e. columns named "..._logRatio": log-ratios of numbers of supporting reads versus numbers of non-supporting reads
+- f. the next column named "TTEST": P-value that comparing treatment ratios against control ratios of columns in item e.
+- g. the next columns named "adjP", "regulation", "foldChange", and "SSDAm": respectively for adjusted P-values of the TTEST column, regulation direction, fold-changes, and P-values by comparing the merged samples
+- h. columns named as "..._ratio": ratios of numbers of supporting reads versus gene expression levels
+- i. rest columns: respectively for P-values of T-TESTs on ratios of columns in item h, adjusted P-values, regulation, and fold-changes (-1 for divide-by-zero)
 
 Note that P-values by comparing the merged samples (column SSDAm) can be considered as a confidence indicator that a small one (ex: <0.05) means enough evidence of the change.
