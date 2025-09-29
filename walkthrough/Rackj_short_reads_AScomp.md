@@ -467,6 +467,14 @@ Sometimes the computation could be wrong simply because of erroneous intron anno
 2. remove rows with exonMIN lower than intron read depths, because this might mean wrong database annotation
 3. remove rows with two low (<0.7) covered fractions (columns N & O). Covered fraction means the region of introns been covered by any reads. An wrongly reported intron (by a significant p-value) may have low fraction values in both samples.
 
+An example with significant P-value:
+
+| #GeneID | intronNo | intronLength | introncontrol | introntreatment | exoncontrol | exontreatment | chiSquared | P-value | adjP | exonMin | foldChange | regulation | coveredcontrol | coveredtreatment |
+|---------|---------:|-------------:|--------------:|----------------:|------------:|--------------:|-----------:|--------:|-----:|--------:|-----------:|:----------:|---------------:|-----------------:|
+| AT1G20450 | 1 | 80 | 9.44 | 0 | 81.12 | 82.86 | 9.639340997 | 0.0019045 | 7.366086591 | 81.12 | 0 | reduced | 1 | 0 |
+
+![AT1G20450 1](pic/AT1G20450_1.png)
+
 ### Exon-skipping: SSESm_control-treatment.xls
 
 Column meanings:
