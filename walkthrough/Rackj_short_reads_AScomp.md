@@ -473,7 +473,7 @@ An example with significant P-value:
 |---------|---------:|-------------:|--------------:|----------------:|------------:|--------------:|-----------:|--------:|-----:|--------:|-----------:|:----------:|---------------:|-----------------:|
 | AT1G20450 | 1 | 80 | 9.44 | 0 | 81.12 | 82.86 | 9.639340997 | 0.0019045 | 7.366086591 | 81.12 | 0 | reduced | 1 | 0 |
 
-![AT1G20450 1](pic/AT1G20450_1.png)
+![AT1G20450_1](pic/AT1G20450_1.png)
 
 ### Exon-skipping: SSESm_control-treatment.xls
 
@@ -497,6 +497,14 @@ In some cases, an isoform containing ES event(s) could be the constitutional for
 Suggested filtering criteria:
 1. filter out rows with total reads from columns C~F less than or equal to 20 (or higher as you wish), for their low effectiveness of the comparison
 2. pick rows with significant (adjusted) p-values at column H or I AND significant p-values at column O
+
+An example with significant P-value:
+
+| #GeneID | exonPair | control | treatment | xcontrol | xtreatment | xChiSquared | P-value | adjP | foldChange | regulation | depthcontrol | depthtreatment | chiSquared | P-value | foldChange | regulation |
+|---------|----------|--------:|----------:|---------:|-----------:|------------:|--------:|-----:|-----------:|:----------:|--------------|---------------:|-----------:|--------:|-----------:|:----------:|
+| AT2G19480 | 10<=>12 | 4 | 0 | 40 | 45 | 4.197289973 | 0.040489 | 0.932341297 | 0.022222222 | reduced | 14.5212766 | 16.9787234 | 4.369815839 | 0.036581 | 0.021381579 | reduced |
+
+![AT2G19480_10_12](pic/AT2G19480_10_12.png)
 
 ### Donor-acceptor change: SSDAm_control-treatment.xls
 
@@ -533,6 +541,14 @@ Back to file. Further explanations of some columns:
 Accordingly, similar suggestions with those for exon-skipping tables:
 1. filter out rows with total reads from columns G~J less than or equal to 20 (or higher as you wish), for their low effectiveness of the comparison
 2. pick rows with significant (adjusted) p-values at column K or L AND significant p-values at column Q
+
+An example with significant P-value:
+
+| #Gene | Splice1 | Database | Splice2 | Database | Donor/Acceptor Change | control Splice1 | treatment Splice1 | control spliceAll | treatment spliceAll | p-value | adjP | foldChange | regulation | control Uniq | treatment Uniq | p-value | foldChange | regulation |
+|------:|--------:|:--------:|--------:|:--------:|:---------------------:|----------------:|------------------:|------------------:|--------------------:|--------:|-----:|-----------:|:----------:|-------------:|---------------:|--------:|-----------:|:----------:|
+| AT5G46430 | 1(0)-2(0) | V | 1(0)-2(-4) | V | A | 0 | 8 | 34 | 26 | 0.004912386 | 4.51448307 | 104.6153846 | enhanced | 150 | 170 | 0.008713715 | 70.58823529 | enhanced |
+
+![AT5G46430_1_0_2_0](pic/AT5G46430_1_0_2_0.png)
 
 ## 6. Alternative-splicing evnet comparison based on ratios with respects to biological replicates
 
