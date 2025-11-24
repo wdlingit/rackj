@@ -325,7 +325,7 @@ AT1G01040.1     AT1G01040
 AT1G01040.1     MSTRG.4
 ```
 
-The following R commands will do count matrix reading, TMM normalization, table join, and the interaction term analysis. Note the code might be improved in some ways. For example, applying `voom` with some appropriate design and/or method so that logCMP values can be normalized in some way you like. For another example, it is also possible to use DESeq2 to implement the interaction term idea. It is also possible to compute isform expressino ratio separately for each sample and then do the comparison on 6 ratios of the samples.
+The following R commands will do count matrix reading, TMM normalization, table join, and the interaction term analysis. Note the code might be improved in some ways. For example, applying `voom` with some appropriate design and/or method so that logCPM values can be normalized in some way you like. For another example, it is also possible to use DESeq2 to implement the interaction term idea. It is also possible to compute isform expressino ratio separately for each sample and then do the comparison on 6 ratios of the samples.
 ```
 Singularity> R
 
