@@ -5,10 +5,9 @@ This repository is currently for [rackj](https://sourceforge.net/projects/rackj/
 ## Installation
 
 It would be most convenient to use the [docker image](https://hub.docker.com/r/wdlin/rackj). Programs and packages required in our walkthrough examples should be all contained in the image file.
-
 <details>
-  <summary>Manual install instruction</summary>
-For manual installation, the following steps should work for most of our programs in Ubuntu 20.04.
+  <summary>Manual install instruction, Ubuntu 24.04.</summary>
+The following steps should work for most of our programs in Ubuntu 24.04.
 
 ```
 # Assume username is ubuntu and at home directory
@@ -17,7 +16,7 @@ mkdir Tools
 cd Tools/
 
 # Download rackJ (check https://sourceforge.net/projects/rackj/files/ for any updated versions) and extract
-wget https://downloads.sourceforge.net/project/rackj/0.99a/rackJ.tar.gz
+wget https://downloads.sourceforge.net/project/rackj/0.99c/rackJ.tar.gz
 tar -zxvf rackJ.tar.gz
 
 # Down related package, picard
@@ -38,9 +37,9 @@ sudo cpan Statistics::R
 
 # The MappingBowtie.pl will call bowtie2. Install if you need it.
 sudo apt install unzip
-sudo apt install python
-wget https://downloads.sourceforge.net/project/bowtie-bio/bowtie2/2.4.4/bowtie2-2.4.4-linux-x86_64.zip
-unzip bowtie2-2.4.4-linux-x86_64.zip
+# sudo apt install python3 # this should not be needed
+wget https://downloads.sourceforge.net/project/bowtie-bio/bowtie2/2.5.5/bowtie2-2.5.5-linux-x86_64.zip
+unzip bowtie2-2.5.5-linux-x86_64.zip
 
 # The MappbinBlat.pl will call blat. Install if you need it.
 wget https://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/blat/blat
@@ -48,7 +47,7 @@ chmod 755 blat
 
 # Set PATH environment into ~/.profile, adjust any path if necessary
 echo "PATH=\"/home/ubuntu/Tools/rackJ/scripts:\$PATH\"" >> ~/.profile
-echo "PATH=\"/home/ubuntu/Tools/bowtie2-2.4.4-linux-x86_64:\$PATH\"" >> ~/.profile
+echo "PATH=\"/home/ubuntu/Tools/bowtie2-2.5.5-linux-x86_64:\$PATH\"" >> ~/.profile
 echo "PATH=\"/home/ubuntu/Tools:\$PATH\"" >> ~/.profile
 echo "INC=\"/home/ubuntu/Tools/rackJ/scripts/PerlLib\"" >> ~/.profile
 echo "CLASSPATH=\"/home/ubuntu/Tools/rackJ/rackj.jar:/home/ubuntu/Tools/sam-1.89.jar\"" >> ~/.profile
