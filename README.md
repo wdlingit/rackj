@@ -72,7 +72,7 @@ mkdir Tools
 cd Tools/
 
 # Download rackJ (check https://sourceforge.net/projects/rackj/files/ for any updated versions) and extract
-wget https://downloads.sourceforge.net/project/rackj/0.99a/rackJ.tar.gz
+wget https://downloads.sourceforge.net/project/rackj/0.99c/rackJ.tar.gz
 tar -zxvf rackJ.tar.gz
 
 # Down related package, picard
