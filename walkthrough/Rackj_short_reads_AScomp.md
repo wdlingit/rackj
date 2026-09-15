@@ -159,7 +159,7 @@ Singularity> ls -l *.merged.bam
 -rwxrwxrwx+ 1 wdlin R418 37492552 Sep 21 14:41 treatment_rep9.merged.bam
 ```
 
-## 2. Visualization of read alignments and the gudided assembly
+## 2. Visualization of read alignments and the genome
 
 **This is an optional step**.
 
