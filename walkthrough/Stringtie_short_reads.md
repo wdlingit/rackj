@@ -157,7 +157,7 @@ CMD: stringtie treatment_rep7_tophat2/accepted_hits.bam -o treatment_rep7.gtf -p
 CMD: stringtie treatment_rep9_tophat2/accepted_hits.bam -o treatment_rep9.gtf -p 4 -G tair10.gtf
 ```
 
-The second step is to merge all GTF file for the 6 samples. The merged GTF file is named `merged.gtf`.
+The second step is to merge all GTF files for the 6 samples. The merged GTF file is named `merged.gtf`.
 ```
 stringtie --merge -G tair10.gtf -o merged.gtf control_rep1.gtf control_rep2.gtf control_rep4.gtf treatment_rep5.gtf treatment_rep7.gtf treatment_rep9.gtf
 ```
