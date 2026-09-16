@@ -10,15 +10,21 @@ This page will go through the following items using short read pair-ended datase
 We will use [ExampleData.zip](https://data.depositar.io/en/dataset/exampledata-zip-20250930) ([alternative download link](https://doi.org/10.6084/m9.figshare.33773359)) and the [docker image](https://hub.docker.com/r/wdlin/rackj) for all the programs. In this walkthrough, we will use Singularity to run the docker image. Usage example:
 
 ```
-wdlin@comp10:/RAID2/R418/20250930_AS$ curl -O https://data.depositar.io/en/dataset/75d0309f-5700-489a-afc0-85591aa3d7d3/resource/cb55dc2b-293a-4115-b6a7-5abca091d021/download/ExampleData.zip
+wdlin@comp04:/RAID2/R418/20260922_AS$ curl -O https://data.depositar.io/en/dataset/341def67-9bd2-4236-886a-7e2f0a3863b8/resource/7237ccae-5a5a-475d-a39b-eaceb733beee/download/ExampleData.zip
 
-wdlin@comp10:/RAID2/R418/20250930_AS$ unzip ExampleData.zip
+wdlin@comp04:/RAID2/R418/20260922_AS$ unzip ExampleData.zip
 Archive:  ExampleData.zip
    creating: ExampleData/
- extracting: ExampleData/control_rep1.merged.bam
- extracting: ExampleData/control_rep2.merged.bam
- extracting: ExampleData/control_rep4.merged.bam
- extracting: ExampleData/README.txt
+  inflating: ExampleData/control_rep1.merged.bam
+   creating: ExampleData/control_rep1_tophat2/
+ extracting: ExampleData/control_rep1_tophat2/accepted_hits.bam
+  inflating: ExampleData/control_rep2.merged.bam
+   creating: ExampleData/control_rep2_tophat2/
+ extracting: ExampleData/control_rep2_tophat2/accepted_hits.bam
+  inflating: ExampleData/control_rep4.merged.bam
+   creating: ExampleData/control_rep4_tophat2/
+ extracting: ExampleData/control_rep4_tophat2/accepted_hits.bam
+  inflating: ExampleData/README.txt
    creating: ExampleData/src/
  extracting: ExampleData/src/control_rep1_R1.fq.gz
  extracting: ExampleData/src/control_rep1_R2.fq.gz
@@ -36,23 +42,30 @@ Archive:  ExampleData.zip
   inflating: ExampleData/tair10.strand.model
   inflating: ExampleData/TAIR10_chr_all.fas
   inflating: ExampleData/TAIR10_GFF3_genes_transposons.gff
- extracting: ExampleData/treatment_rep5.merged.bam
- extracting: ExampleData/treatment_rep7.merged.bam
- extracting: ExampleData/treatment_rep9.merged.bam
+  inflating: ExampleData/treatment_rep5.merged.bam
+   creating: ExampleData/treatment_rep5_tophat2/
+ extracting: ExampleData/treatment_rep5_tophat2/accepted_hits.bam
+  inflating: ExampleData/treatment_rep7.merged.bam
+   creating: ExampleData/treatment_rep7_tophat2/
+ extracting: ExampleData/treatment_rep7_tophat2/accepted_hits.bam
+  inflating: ExampleData/treatment_rep9.merged.bam
+   creating: ExampleData/treatment_rep9_tophat2/
+ extracting: ExampleData/treatment_rep9_tophat2/accepted_hits.bam
 
 # this is to make sure the folder writable
-wdlin@comp10:/RAID2/R418/20250930_AS$ chmod -R 755 ExampleData
+wdlin@comp04:/RAID2/R418/20260922_AS$ chmod -R 755 ExampleData
 
-wdlin@comp10:/RAID2/R418/20250930_AS$ cd ExampleData/
+wdlin@comp04:/RAID2/R418/20260922_AS$ cd ExampleData/
 
 # this binds the ExampleData folder to /mnt in the container
-wdlin@comp10:/RAID2/R418/20250930_AS/ExampleData$ singularity run --bind "$PWD:/mnt" docker://wdlin/rackj
+wdlin@comp04:/RAID2/R418/20260922_AS/ExampleData$ singularity run --bind "$PWD:/mnt" docker://wdlin/rackj
 INFO:    Using cached SIF image
 
 Singularity> cd /mnt/
 Singularity> ls
-README.txt                         TAIR10_chr_all.fas       control_rep2.merged.bam  src                 tair10.strand.model        treatment_rep7.merged.bam
-TAIR10_GFF3_genes_transposons.gff  control_rep1.merged.bam  control_rep4.merged.bam  tair10.strand.cgff  treatment_rep5.merged.bam  treatment_rep9.merged.bam
+README.txt                         control_rep1.merged.bam  control_rep2_tophat2     src                  treatment_rep5.merged.bam  treatment_rep7_tophat2
+TAIR10_GFF3_genes_transposons.gff  control_rep1_tophat2     control_rep4.merged.bam  tair10.strand.cgff   treatment_rep5_tophat2     treatment_rep9.merged.bam
+TAIR10_chr_all.fas                 control_rep2.merged.bam  control_rep4_tophat2     tair10.strand.model  treatment_rep7.merged.bam  treatment_rep9_tophat2
 ```
 
 Note that the `ExampleData` folder was bounded as `/mnt` in the container. All necessary programs should be available so no need to do any installation. Also note the raw reads in this dataset contains only very small part of adapters so the adapter removal was not applied.
@@ -67,9 +80,12 @@ The maximum memory usage is about 2GB for this workthrough so it seems not neede
 
 ## 1. Mapping using TopHat2
 
+**This is an optional step**. You may adopt `*_tophat2/accepted_hits.bam` in ExampleData.zip directly. 
+
 Since we are going to map reads, existing BAM files are not needed.
 ```
 rm *.bam
+rm -rf *_tophat2/
 ```
 
 Build Bowtie2 genome index.
