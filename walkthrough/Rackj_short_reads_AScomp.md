@@ -190,7 +190,7 @@ CMD: samtools sort -o control_rep1.sorted.bam control_rep1.merged.bam
 
 The next perl one-liner generates commands for building indexes.
 ```
-Singularity> ls *.sorted.bam | perl -ne 'chomp; $cmd="samtools index $_"; print "$cmd\n"; system $cmd'
+ls *.sorted.bam | perl -ne 'chomp; $cmd="samtools index $_"; print "$cmd\n"; system $cmd'
 ```
 
 With files `TAIR10_chr_all.fas`, `TAIR10_GFF3_genes_transposons.gff`, `*.sorted.bam`, and `*.sorted.bam.bai` available in a desktop computer, we can get read alignment visualization with the genome annotation by the following steps:
