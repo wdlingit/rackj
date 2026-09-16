@@ -181,7 +181,7 @@ Singularity> ls *.sorted.bam | perl -ne 'chomp; $cmd="samtools index $_"; print 
 
 With files `TAIR10_chr_all.fas`, `TAIR10_GFF3_genes_transposons.gff`, `*.sorted.bam`, and `*.sorted.bam.bai` available in a desktop computer, we can get read alignment visualization with the genome annotation by the following steps:
 1. From IGV menu, Genomes -> Load Genome from File, pick `TAIR10_chr_all.fas`. This should load chromosome sequences.
-2. File -> Load from File, pick `TAIR10_GFF3_genes_transposons.gff`. This should load the genome annotation made by the guided assembly.
+2. File -> Load from File, pick `TAIR10_GFF3_genes_transposons.gff`. This should load the genome annotation.
 3. File -> Load from File, pick `*.sorted.bam`. This should load read alignment files of the 6 samples.
 
 ## 3. Extract gene-exon coordinates
