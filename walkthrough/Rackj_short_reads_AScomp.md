@@ -60,8 +60,9 @@ INFO:    Using cached SIF image
 
 Singularity> cd /mnt/
 Singularity> ls
-README.txt                         TAIR10_chr_all.fas       control_rep2.merged.bam  src                 tair10.strand.model        treatment_rep7.merged.bam
-TAIR10_GFF3_genes_transposons.gff  control_rep1.merged.bam  control_rep4.merged.bam  tair10.strand.cgff  treatment_rep5.merged.bam  treatment_rep9.merged.bam
+README.txt                         control_rep1.merged.bam  control_rep2_tophat2     src                  treatment_rep5.merged.bam  treatment_rep7_tophat2
+TAIR10_GFF3_genes_transposons.gff  control_rep1_tophat2     control_rep4.merged.bam  tair10.strand.cgff   treatment_rep5_tophat2     treatment_rep9.merged.bam
+TAIR10_chr_all.fas                 control_rep2.merged.bam  control_rep4_tophat2     tair10.strand.model  treatment_rep7.merged.bam  treatment_rep9_tophat2
 ```
 
 Note that the `ExampleData` folder was bounded as `/mnt` in the container. All necessary programs should be available so no need to do any installation. Also note the raw reads in this dataset contains only very small part of adapters so the adapter removal was not applied.
