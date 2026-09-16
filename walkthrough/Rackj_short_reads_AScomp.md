@@ -82,6 +82,7 @@ The maximum memory usage is about 2GB for this workthrough so it seems not neede
 In case that we are going to map reads, existing BAM files are no longer needed.
 ```
 rm *.bam
+rm -rf *_tophat2/
 ```
 
 Build indexes for `BioPerl` and `samtools`. This is strongly suggested for avoiding race condition in case you are going to submit mapping commands to a job scheduler like slurm.
